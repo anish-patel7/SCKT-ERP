@@ -1,0 +1,13 @@
+{
+  "policy_count": 4,
+  "permissions": [
+    "sales:create",
+    "sales:read",
+    "sales:update"
+  ],
+  "legacy_primary_role_policies": 0,
+  "duplicate_header_policies": 0,
+  "unknown_sales_permissions": [],
+  "unrelated_sql_changed": false,
+  "frozen_source_migration_config_changes": []
+}

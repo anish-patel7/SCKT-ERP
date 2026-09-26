@@ -1,0 +1,92 @@
+[
+  {
+    "test": "missing auth uid: allocate_inventory_for_sales",
+    "pass": true,
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function allocate_inventory_for_sales(uuid,character varying,numeric,uuid) line 11 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: complete_job_output",
+    "pass": true,
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function complete_job_output(uuid,numeric,character varying,character varying) line 12 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: complete_quality_inspection",
+    "pass": true,
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function complete_quality_inspection(uuid,character varying,character varying,character varying) line 16 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: confirm_sales_order",
+    "pass": true,
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 13 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: confirm_sales_order_with_reservation",
+    "pass": true,
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function confirm_sales_order_with_reservation(uuid,character varying) line 15 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: issue_material_to_production",
+    "pass": true,
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function issue_material_to_production(uuid,uuid,numeric,character varying) line 13 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: save_design",
+    "pass": true,
+    "error": "ERROR:  Not authenticated\nCONTEXT:  PL/pgSQL function save_design(uuid,jsonb,jsonb) line 8 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "missing auth uid: record_payment_atomic",
+    "pass": true,
+    "error": "",
+    "output": "SET\nSET\n(f,,,,0,0,0,,\"Error: Authentication required\")"
+  },
+  {
+    "test": "missing auth uid: allocate_payment_atomic",
+    "pass": true,
+    "error": "",
+    "output": "SET\nSET\n(f,,,,0,0,0,0,,\"Error: Authentication required\")"
+  },
+  {
+    "test": "missing auth uid: approve_stock_reservation_atomic",
+    "pass": true,
+    "error": "ERROR:  Not authenticated\nCONTEXT:  PL/pgSQL function approve_stock_reservation_atomic(uuid) line 13 at RAISE",
+    "output": "SET\nSET"
+  },
+  {
+    "test": "all business tables deny anon SQL privileges",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "all definers have fixed safe search path",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "anon function ACL exposure",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "PUBLIC function ACL exposure",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "Admin valid Sales confirmation",
+    "pass": false,
+    "output": "BEGIN\nINSERT 0 1\nINSERT 0 1\nINSERT 0 1\nSET\nSET",
+    "error": "ERROR:  column reference \"status\" is ambiguous\nLINE 1: SELECT status, customer_id\n               ^\nDETAIL:  It could refer to either a PL/pgSQL variable or a table column.\nQUERY:  SELECT status, customer_id\n\n                                        FROM public.sales_orders\n\n  WHERE id = p_order_id\n\n  FOR UPDATE\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 23 at SQL statement"
+  }
+]

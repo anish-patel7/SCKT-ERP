@@ -1,0 +1,532 @@
+{
+  "customers": [
+    {
+      "column": "id",
+      "type": "uuid"
+    },
+    {
+      "column": "party_id",
+      "type": "uuid"
+    },
+    {
+      "column": "credit_limit",
+      "type": "numeric"
+    },
+    {
+      "column": "current_credit_used",
+      "type": "numeric"
+    },
+    {
+      "column": "payment_terms_days",
+      "type": "integer"
+    },
+    {
+      "column": "default_shipping_address",
+      "type": "text"
+    },
+    {
+      "column": "contact_person",
+      "type": "character varying"
+    },
+    {
+      "column": "phone",
+      "type": "character varying"
+    },
+    {
+      "column": "email",
+      "type": "character varying"
+    },
+    {
+      "column": "is_active",
+      "type": "boolean"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "created_by",
+      "type": "character varying"
+    },
+    {
+      "column": "updated_by",
+      "type": "character varying"
+    }
+  ],
+  "parties": [
+    {
+      "column": "id",
+      "type": "uuid"
+    },
+    {
+      "column": "party_code",
+      "type": "text"
+    },
+    {
+      "column": "party_name",
+      "type": "text"
+    },
+    {
+      "column": "office_name",
+      "type": "text"
+    },
+    {
+      "column": "address_line1",
+      "type": "text"
+    },
+    {
+      "column": "address_line2",
+      "type": "text"
+    },
+    {
+      "column": "area",
+      "type": "text"
+    },
+    {
+      "column": "city",
+      "type": "text"
+    },
+    {
+      "column": "district",
+      "type": "text"
+    },
+    {
+      "column": "state",
+      "type": "text"
+    },
+    {
+      "column": "pin_code",
+      "type": "text"
+    },
+    {
+      "column": "country",
+      "type": "text"
+    },
+    {
+      "column": "contact_person",
+      "type": "text"
+    },
+    {
+      "column": "designation",
+      "type": "text"
+    },
+    {
+      "column": "mobile",
+      "type": "text"
+    },
+    {
+      "column": "alternate_mobile",
+      "type": "text"
+    },
+    {
+      "column": "email",
+      "type": "text"
+    },
+    {
+      "column": "whatsapp_number",
+      "type": "text"
+    },
+    {
+      "column": "gstin",
+      "type": "text"
+    },
+    {
+      "column": "pan",
+      "type": "text"
+    },
+    {
+      "column": "job_work_applicable",
+      "type": "text"
+    },
+    {
+      "column": "job_work_remarks",
+      "type": "text"
+    },
+    {
+      "column": "remarks",
+      "type": "text"
+    },
+    {
+      "column": "status",
+      "type": "text"
+    },
+    {
+      "column": "transaction_count",
+      "type": "integer"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "created_by",
+      "type": "uuid"
+    },
+    {
+      "column": "updated_by",
+      "type": "uuid"
+    },
+    {
+      "column": "party_type",
+      "type": "text"
+    }
+  ],
+  "sales_order_items": [
+    {
+      "column": "id",
+      "type": "uuid"
+    },
+    {
+      "column": "order_id",
+      "type": "uuid"
+    },
+    {
+      "column": "line_number",
+      "type": "integer"
+    },
+    {
+      "column": "fabric_quality_name",
+      "type": "character varying"
+    },
+    {
+      "column": "design_no",
+      "type": "character varying"
+    },
+    {
+      "column": "qty_metre",
+      "type": "numeric"
+    },
+    {
+      "column": "qty_allocated",
+      "type": "numeric"
+    },
+    {
+      "column": "qty_shipped",
+      "type": "numeric"
+    },
+    {
+      "column": "rate_per_metre",
+      "type": "numeric"
+    },
+    {
+      "column": "line_total",
+      "type": "numeric"
+    },
+    {
+      "column": "remarks",
+      "type": "text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "design_id",
+      "type": "uuid"
+    },
+    {
+      "column": "design_no_snapshot",
+      "type": "character varying"
+    },
+    {
+      "column": "design_name_snapshot",
+      "type": "character varying"
+    },
+    {
+      "column": "cost_sheet_id",
+      "type": "uuid"
+    },
+    {
+      "column": "cost_sheet_no_snapshot",
+      "type": "character varying"
+    },
+    {
+      "column": "qty_reserved",
+      "type": "numeric"
+    },
+    {
+      "column": "approved_sale_rate",
+      "type": "numeric"
+    },
+    {
+      "column": "approved_by",
+      "type": "character varying"
+    },
+    {
+      "column": "approved_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "inventory_item_id",
+      "type": "uuid"
+    },
+    {
+      "column": "stock_reservation_id",
+      "type": "uuid"
+    },
+    {
+      "column": "qty_dispatched",
+      "type": "numeric"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "updated_by",
+      "type": "character varying"
+    },
+    {
+      "column": "shipment_id",
+      "type": "uuid"
+    },
+    {
+      "column": "qty_invoiced",
+      "type": "numeric"
+    }
+  ],
+  "sales_orders": [
+    {
+      "column": "id",
+      "type": "uuid"
+    },
+    {
+      "column": "order_no",
+      "type": "character varying"
+    },
+    {
+      "column": "quotation_id",
+      "type": "uuid"
+    },
+    {
+      "column": "customer_id",
+      "type": "uuid"
+    },
+    {
+      "column": "order_date",
+      "type": "date"
+    },
+    {
+      "column": "delivery_date",
+      "type": "date"
+    },
+    {
+      "column": "subtotal_amount",
+      "type": "numeric"
+    },
+    {
+      "column": "discount_percent",
+      "type": "numeric"
+    },
+    {
+      "column": "discount_amount",
+      "type": "numeric"
+    },
+    {
+      "column": "tax_amount",
+      "type": "numeric"
+    },
+    {
+      "column": "total_amount",
+      "type": "numeric"
+    },
+    {
+      "column": "status",
+      "type": "character varying"
+    },
+    {
+      "column": "shipping_address",
+      "type": "text"
+    },
+    {
+      "column": "billing_address",
+      "type": "text"
+    },
+    {
+      "column": "delivery_instructions",
+      "type": "text"
+    },
+    {
+      "column": "remarks",
+      "type": "text"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "created_by",
+      "type": "character varying"
+    },
+    {
+      "column": "updated_by",
+      "type": "character varying"
+    },
+    {
+      "column": "confirmed_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "shipped_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "delivered_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "warehouse_id",
+      "type": "uuid"
+    },
+    {
+      "column": "customer_name_snapshot",
+      "type": "character varying"
+    },
+    {
+      "column": "broker_name_snapshot",
+      "type": "character varying"
+    },
+    {
+      "column": "credit_override_approved",
+      "type": "boolean"
+    },
+    {
+      "column": "credit_override_reason",
+      "type": "text"
+    },
+    {
+      "column": "credit_override_approved_by",
+      "type": "character varying"
+    },
+    {
+      "column": "credit_override_approved_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "invoice_id",
+      "type": "uuid"
+    },
+    {
+      "column": "allocated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "allocated_by",
+      "type": "character varying"
+    },
+    {
+      "column": "dispatched_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "dispatched_by",
+      "type": "character varying"
+    },
+    {
+      "column": "delivered_by",
+      "type": "character varying"
+    },
+    {
+      "column": "invoiced_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "invoiced_by",
+      "type": "character varying"
+    },
+    {
+      "column": "paid_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "paid_by",
+      "type": "character varying"
+    }
+  ],
+  "stock_reservations": [
+    {
+      "column": "id",
+      "type": "uuid"
+    },
+    {
+      "column": "item_id",
+      "type": "uuid"
+    },
+    {
+      "column": "qty_reserved",
+      "type": "numeric"
+    },
+    {
+      "column": "unit",
+      "type": "character varying"
+    },
+    {
+      "column": "reserved_by",
+      "type": "character varying"
+    },
+    {
+      "column": "reservation_date",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "approval_status",
+      "type": "character varying"
+    },
+    {
+      "column": "approved_by",
+      "type": "character varying"
+    },
+    {
+      "column": "approved_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "rejection_reason",
+      "type": "text"
+    },
+    {
+      "column": "expires_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "reference_doc",
+      "type": "character varying"
+    },
+    {
+      "column": "remarks",
+      "type": "text"
+    },
+    {
+      "column": "is_active",
+      "type": "boolean"
+    },
+    {
+      "column": "created_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "updated_at",
+      "type": "timestamp with time zone"
+    },
+    {
+      "column": "created_by",
+      "type": "character varying"
+    },
+    {
+      "column": "updated_by",
+      "type": "character varying"
+    }
+  ]
+}

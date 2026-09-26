@@ -1,0 +1,38 @@
+[
+  {
+    "name": "sales_orders_insert",
+    "command": "INSERT",
+    "roles": [
+      "authenticated"
+    ],
+    "using": null,
+    "with_check": "user_has_permission(auth.uid(), 'sales:create'::character varying)"
+  },
+  {
+    "name": "sales_orders_read",
+    "command": "SELECT",
+    "roles": [
+      "authenticated"
+    ],
+    "using": "user_has_permission(auth.uid(), 'sales:read'::character varying)",
+    "with_check": null
+  },
+  {
+    "name": "sales_orders_rollback_empty_header",
+    "command": "DELETE",
+    "roles": [
+      "authenticated"
+    ],
+    "using": "(user_has_permission(auth.uid(), 'sales:create'::character varying) AND ((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'CONFIRMED'::character varying])::text[])) AND (confirmed_at IS NULL) AND (((created_by)::text = (auth.uid())::text) OR ((created_by)::text = (auth.jwt() ->> 'email'::text))) AND (NOT (EXISTS ( SELECT 1\n   FROM sales_order_items soi\n  WHERE (soi.order_id = sales_orders.id)))))",
+    "with_check": null
+  },
+  {
+    "name": "sales_orders_update",
+    "command": "UPDATE",
+    "roles": [
+      "authenticated"
+    ],
+    "using": "user_has_permission(auth.uid(), 'sales:update'::character varying)",
+    "with_check": "user_has_permission(auth.uid(), 'sales:update'::character varying)"
+  }
+]

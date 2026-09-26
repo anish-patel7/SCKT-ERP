@@ -1,0 +1,383 @@
+[
+  {
+    "rpc": "bulk_create_orders",
+    "source": "src/services/bulkOrders.ts",
+    "classification": "NOT_REACHABLE",
+    "present": false,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "bulk_update_prices",
+    "source": "src/services/bulkOrders.ts",
+    "classification": "NOT_REACHABLE",
+    "present": false,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "update_customer_credit_used",
+    "source": "src/services/customers.ts",
+    "classification": "NOT_REACHABLE",
+    "present": false,
+    "note": "Unused customer credit method; no call site"
+  },
+  {
+    "rpc": "save_design",
+    "source": "src/services/designs.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "confirm_stock_reservation",
+    "source": "src/services/dispatch.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "create_shipment",
+    "source": "src/services/dispatch.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "confirm_shipment_dispatch",
+    "source": "src/services/dispatch.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "confirm_shipment_delivery",
+    "source": "src/services/dispatch.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "create_fulfillment_from_order",
+    "source": "src/services/fulfillment.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "update_fulfillment_item",
+    "source": "src/services/fulfillment.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "ship_fulfillment",
+    "source": "src/services/fulfillment.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "deliver_fulfillment",
+    "source": "src/services/fulfillment.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "get_saleable_inventory",
+    "source": "src/services/inventoryAllocation.ts",
+    "classification": "READ_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "get_inventory_by_quality_grade",
+    "source": "src/services/inventoryAllocation.ts",
+    "classification": "READ_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "allocate_inventory_for_sales",
+    "source": "src/services/inventoryAllocation.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "create_invoice_from_order",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "record_payment",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "get_invoice_summary",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "get_payment_aging_report",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "complete_order",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "create_invoice_from_shipment_atomic",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "record_payment_atomic",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "allocate_payment_atomic",
+    "source": "src/services/invoicing.ts",
+    "classification": "NOT_REACHABLE",
+    "present": true,
+    "note": "No current route dependency"
+  },
+  {
+    "rpc": "user_has_permission_v2",
+    "source": "src/services/permissions.ts",
+    "classification": "READ_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "get_user_effective_permissions",
+    "source": "src/services/permissions.ts",
+    "classification": "READ_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "issue_material_to_production",
+    "source": "src/services/production.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "complete_job_output",
+    "source": "src/services/production.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "complete_quality_inspection",
+    "source": "src/services/quality.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "approve_stock_reservation_atomic",
+    "source": "src/services/reservations.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "confirm_sales_order",
+    "source": "src/services/sales.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "confirm_sales_order_with_reservation",
+    "source": "src/services/sales.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "record_payment_atomic",
+    "source": "src/services/sales.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "allocate_payment_atomic",
+    "source": "src/services/sales.ts",
+    "classification": "MUTATION_RPC",
+    "present": true,
+    "note": "Reachable module; conservative allowance for its RPC methods"
+  },
+  {
+    "rpc": "audit_profile_change",
+    "signature": "audit_profile_change()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "cancel_sales_order_atomic",
+    "signature": "cancel_sales_order_atomic(uuid)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "confirm_stock_reservation_atomic",
+    "signature": "confirm_stock_reservation_atomic(uuid)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "confirm_stock_reservation_dispatch",
+    "signature": "confirm_stock_reservation_dispatch(uuid, character varying)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "create_shipment_atomic",
+    "signature": "create_shipment_atomic(uuid, uuid, numeric, uuid, text, character varying, character varying)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "generate_invoice",
+    "signature": "generate_invoice(uuid, date, date, character varying)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "get_user_primary_role_id",
+    "signature": "get_user_primary_role_id(uuid)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "get_user_role",
+    "signature": "get_user_role(uuid)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "guard_profile_privileged_columns",
+    "signature": "guard_profile_privileged_columns()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "handle_new_user",
+    "signature": "handle_new_user()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "handle_new_user_preferences",
+    "signature": "handle_new_user_preferences()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "handle_new_user_rbac",
+    "signature": "handle_new_user_rbac()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "has_role",
+    "signature": "has_role(uuid, text)",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "is_admin",
+    "signature": "is_admin(uuid)",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "rbac_user_role_ids",
+    "signature": "rbac_user_role_ids(uuid)",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "release_sales_stock_atomic",
+    "signature": "release_sales_stock_atomic(uuid)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "reserve_sales_stock_atomic",
+    "signature": "reserve_sales_stock_atomic(uuid, uuid, numeric)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "reset_payment_sequence_if_needed",
+    "signature": "reset_payment_sequence_if_needed()",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "update_updated_at_column",
+    "signature": "update_updated_at_column()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "update_user_preferences_timestamp",
+    "signature": "update_user_preferences_timestamp()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "user_has_permission",
+    "signature": "user_has_permission(uuid, character varying)",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "user_owns_record",
+    "signature": "user_owns_record(uuid, uuid)",
+    "classification": "NOT_REACHABLE",
+    "present": true
+  },
+  {
+    "rpc": "validate_sales_order_item_update",
+    "signature": "validate_sales_order_item_update()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "validate_sales_order_update",
+    "signature": "validate_sales_order_update()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  },
+  {
+    "rpc": "update_inventory_balance",
+    "signature": "update_inventory_balance()",
+    "classification": "INTERNAL_HELPER",
+    "present": true
+  }
+]

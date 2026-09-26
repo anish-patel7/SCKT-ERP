@@ -1,0 +1,193 @@
+{
+  "checked_references": 312,
+  "missing": [],
+  "unresolved_nested_selects": [
+    {
+      "file": "src/services/approval.ts",
+      "line": 117,
+      "table": "inventory_transactions",
+      "select": "\n        id,\n        transaction_date,\n        reference_doc,\n        qty_change,\n        unit,\n        approval_status,\n        quality_grade,\n        quality_remarks,\n        inventory_items(item_code, item_name)\n      "
+    },
+    {
+      "file": "src/services/approval.ts",
+      "line": 158,
+      "table": "inventory_transactions",
+      "select": "\n        id,\n        transaction_date,\n        reference_doc,\n        qty_change,\n        unit,\n        approval_status,\n        quality_grade,\n        quality_remarks,\n        inspected_by,\n        inspected_at,\n        inventory_items(item_code, item_name)\n      "
+    },
+    {
+      "file": "src/services/dailyProduction.ts",
+      "line": 60,
+      "table": "job_cards",
+      "select": "qty_metre, daily_production(metre_produced)"
+    },
+    {
+      "file": "src/services/dailyProduction.ts",
+      "line": 119,
+      "table": "daily_production",
+      "select": "*, job_cards(card_no), looms(loom_no)"
+    },
+    {
+      "file": "src/services/dailyProduction.ts",
+      "line": 144,
+      "table": "job_cards",
+      "select": "qty_metre, production_orders(qty_metre)"
+    },
+    {
+      "file": "src/services/dailyProduction.ts",
+      "line": 182,
+      "table": "daily_production",
+      "select": "*, job_cards(card_no, production_orders(order_no)), looms(loom_no)"
+    },
+    {
+      "file": "src/services/dailyProduction.ts",
+      "line": 228,
+      "table": "daily_production",
+      "select": "*, job_cards(production_orders(quality_name))"
+    },
+    {
+      "file": "src/services/looms.ts",
+      "line": 74,
+      "table": "looms",
+      "select": "\n        *,\n        job_cards(card_no, status, qty_metre),\n        profiles(full_name)\n      "
+    },
+    {
+      "file": "src/services/looms.ts",
+      "line": 96,
+      "table": "looms",
+      "select": "*, profiles(full_name), job_cards(card_no, status)"
+    },
+    {
+      "file": "src/services/looms.ts",
+      "line": 189,
+      "table": "daily_production",
+      "select": "\n        entry_date,\n        shift,\n        metre_produced,\n        downtime_min,\n        job_cards(card_no)\n      "
+    },
+    {
+      "file": "src/services/looms.ts",
+      "line": 248,
+      "table": "loom_maintenance",
+      "select": "*, looms(loom_no)"
+    },
+    {
+      "file": "src/services/looms.ts",
+      "line": 321,
+      "table": "loom_maintenance",
+      "select": "*, looms(loom_no)"
+    },
+    {
+      "file": "src/services/permissions.ts",
+      "line": 58,
+      "table": "role_permissions",
+      "select": "permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at)"
+    },
+    {
+      "file": "src/services/production.ts",
+      "line": 83,
+      "table": "production_orders",
+      "select": "\n        *,\n        cost_sheets(sheet_no, quality),\n        parties(party_name, contact_person),\n        job_cards(*)\n      "
+    },
+    {
+      "file": "src/services/production.ts",
+      "line": 107,
+      "table": "production_orders",
+      "select": "*, parties(party_name), cost_sheets(sheet_no)"
+    },
+    {
+      "file": "src/services/production.ts",
+      "line": 303,
+      "table": "job_cards",
+      "select": "*, looms(loom_no, status), daily_production(*)"
+    },
+    {
+      "file": "src/services/production.ts",
+      "line": 314,
+      "table": "job_cards",
+      "select": "\n        *,\n        looms(loom_no, status, panna_inch),\n        production_orders(order_no, party_id, quality_name),\n        daily_production(*)\n      "
+    },
+    {
+      "file": "src/services/production.ts",
+      "line": 465,
+      "table": "job_cards",
+      "select": "*, looms(loom_no), production_orders(order_no, qty_metre), daily_production(*)"
+    },
+    {
+      "file": "src/services/reservations.ts",
+      "line": 143,
+      "table": "stock_reservations",
+      "select": "\n        id,\n        item_id,\n        qty_reserved,\n        unit,\n        reserved_by,\n        reservation_date,\n        expires_at,\n        reference_doc,\n        remarks,\n        inventory_items(item_code, item_name)\n      "
+    },
+    {
+      "file": "src/services/reservations.ts",
+      "line": 200,
+      "table": "stock_reservations",
+      "select": "\n        *,\n        inventory_items(item_code, item_name, item_type)\n      "
+    },
+    {
+      "file": "src/services/sales.ts",
+      "line": 152,
+      "table": "sales_quotations",
+      "select": "\n      *,\n      sales_quotation_items (*)\n    "
+    },
+    {
+      "file": "src/services/sales.ts",
+      "line": 278,
+      "table": "sales_orders",
+      "select": "\n      *,\n      sales_order_items (*)\n    "
+    },
+    {
+      "file": "src/services/sales.ts",
+      "line": 576,
+      "table": "sales_invoices",
+      "select": "\n      id,\n      invoice_no,\n      order_id,\n      customer_id,\n      invoice_date,\n      due_date,\n      total_amount,\n      amount_paid,\n      amount_outstanding,\n      status,\n      customers (\n        id,\n        parties ( party_name )\n      ),\n      sales_orders (\n        order_no\n      )\n    "
+    },
+    {
+      "file": "src/services/sales.ts",
+      "line": 719,
+      "table": "sales_payments",
+      "select": "\n      id,\n      payment_date,\n      amount_paid,\n      payment_method,\n      reference_number,\n      remarks,\n      payment_number,\n      customer_id,\n      customers ( parties ( party_name ) ),\n      sales_invoices ( invoice_no )\n    "
+    },
+    {
+      "file": "src/services/search.ts",
+      "line": 77,
+      "table": "inventory_transactions",
+      "select": "\n        id,\n        transaction_date,\n        movement_type,\n        item_id,\n        qty_change,\n        unit,\n        reference_doc,\n        created_by,\n        remarks,\n        location_from,\n        location_to,\n        inventory_items!inner(\n          id,\n          item_code,\n          item_name,\n          item_type,\n          lot_no\n        )\n      "
+    },
+    {
+      "file": "src/services/warehouse.ts",
+      "line": 113,
+      "table": "warehouse_locations",
+      "select": "*, warehouse_zones(*)"
+    },
+    {
+      "file": "src/services/warehouse.ts",
+      "line": 143,
+      "table": "warehouse_locations",
+      "select": "*, warehouse_zones(*)"
+    },
+    {
+      "file": "src/services/warehouse.ts",
+      "line": 164,
+      "table": "warehouse_locations",
+      "select": "*, warehouse_zones(*)"
+    },
+    {
+      "file": "src/services/warehouse.ts",
+      "line": 187,
+      "table": "warehouse_locations",
+      "select": "*, warehouse_zones(*)"
+    },
+    {
+      "file": "src/services/warehouse.ts",
+      "line": 214,
+      "table": "warehouse_locations",
+      "select": "*, warehouse_zones(*)"
+    },
+    {
+      "file": "src/services/warehouse.ts",
+      "line": 338,
+      "table": "warehouse_locations",
+      "select": "*, warehouse_zones(*)"
+    }
+  ],
+  "limitation": "Conservative route-module graph; dynamic payloads, builder variables and nested relation selects need separate review. Zero exhaustive missing-column claim is not made."
+}

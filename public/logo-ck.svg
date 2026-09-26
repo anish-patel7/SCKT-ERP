@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 350" width="500" height="350">
+  <defs>
+    <!-- Metallic Gold Gradient -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFEFA6"/>
+      <stop offset="25%" stop-color="#F2C84B"/>
+      <stop offset="50%" stop-color="#D49E1B"/>
+      <stop offset="75%" stop-color="#B27E0D"/>
+      <stop offset="100%" stop-color="#7C5402"/>
+    </linearGradient>
+
+    <!-- Metallic Highlight Gradient -->
+    <linearGradient id="goldHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFF5C2"/>
+      <stop offset="50%" stop-color="#E5B338"/>
+      <stop offset="100%" stop-color="#996A08"/>
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#dropShadow)" transform="translate(100, 25)">
+    <!-- 1. Outer Crescent 'C' Ring -->
+    <path d="M 130,20 
+             C 60,20 10,70 10,145 
+             C 10,220 60,270 130,270 
+             C 90,250 50,210 50,145 
+             C 50,80 90,40 130,20 Z" 
+          fill="url(#goldGradient)"/>
+
+    <!-- 2. Woven Grid (3x3 Fabric Weave) Inside 'C' -->
+    <g stroke="url(#goldGradient)" stroke-width="8" stroke-linecap="round">
+      <!-- Vertical Threads -->
+      <line x1="72" y1="110" x2="72" y2="180"/>
+      <line x1="90" y1="110" x2="90" y2="180"/>
+      <line x1="108" y1="110" x2="108" y2="180"/>
+
+      <!-- Horizontal Threads -->
+      <line x1="58" y1="125" x2="122" y2="125"/>
+      <line x1="58" y1="145" x2="122" y2="145"/>
+      <line x1="58" y1="165" x2="122" y2="165"/>
+    </g>
+
+    <!-- 3. 'K' Vertical Stem -->
+    <rect x="135" y="95" width="18" height="155" rx="4" fill="url(#goldGradient)"/>
+
+    <!-- 4. 'K' Upper Sweeping Arch Swoosh -->
+    <path d="M 138,155 
+             C 170,110 210,75 270,80 
+             C 230,100 190,135 152,178 Z" 
+          fill="url(#goldGradient)"/>
+
+    <!-- 5. 'K' Lower Diagonal Leg -->
+    <path d="M 145,165 
+             L 245,265 
+             L 215,265 
+             L 135,185 Z" 
+          fill="url(#goldGradient)"/>
+  </g>
+</svg>

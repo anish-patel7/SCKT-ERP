@@ -1,0 +1,182 @@
+-- STEP 3G: Align Reservation Schema Contract
+-- Date: September 22, 2026
+-- Purpose: Clarify and document canonical reservation model for Sales Orders
+
+-- ============================================================================
+-- RESERVATION ARCHITECTURE CLARIFICATION
+-- ============================================================================
+--
+-- CANONICAL RESERVATION TABLE: stock_reservations
+--   - Purpose: General inventory reservation with approval workflow
+--   - Scope: Inventory item level (not Sales Order specific)
+--   - Status Model: PENDING, APPROVED, REJECTED, EXPIRED, CANCELLED
+--   - Usage: reservationsService (general inventory reservations)
+--
+-- SALES ORDER RESERVATION MODEL: Direct Quantity Tracking
+--   - Primary Fields:
+--     * sales_order_items.qty_reserved — Line-level reservation quantity
+--     * inventory_items.reserved_qty — Total reserved quantity per item
+--   - Active Statuses: Implied by qty > 0
+--   - Usage: confirm_stock_reservation() RPC (automatic)
+--
+-- NOT USED: inventory_reservations table does NOT exist
+--   - This was removed as it conflicted with canonical model
+--   - Do not create this table (use qty_reserved fields instead)
+--
+-- ============================================================================
+-- SALES ORDER QUANTITY FIELDS (from STEP 3D)
+-- ============================================================================
+--
+-- sales_order_items columns:
+--   qty_metre — Ordered quantity (immutable)
+--   qty_reserved — Reserved from inventory (set by confirm_stock_reservation())
+--   qty_dispatched — Dispatched to customer (set by create_shipment())
+--
+-- Constraints:
+--   qty_metre > 0
+--   qty_reserved >= 0 AND qty_reserved <= qty_metre
+--   qty_dispatched >= 0 AND qty_dispatched <= qty_metre
+--
+-- Relationship:
+--   qty_reserved on sales_order_items
+--   =
+--   SUM(stock_reservations.qty_reserved) for that item (if using stock_reservations)
+--   OR
+--   Direct field tracking (current implementation)
+
+-- ============================================================================
+-- WAREHOUSE TRACKING
+-- ============================================================================
+--
+-- Current State: warehouse_id field added to sales_orders (Phase 3)
+-- Behavior: All reservations for an order are warehouse-specific
+--
+-- Saleable Inventory Query: Warehouse-scoped
+--   get_saleable_inventory(p_warehouse_id)
+--   → Filters by warehouse_locations
+--
+-- Recommendation: Add warehouse_id to stock_reservations in future if needed
+
+-- ============================================================================
+-- LOT/BATCH TRACKING
+-- ============================================================================
+--
+-- Current State: Production inspections linked by design_no + piece_no
+-- Lot Model: Implicit (design_no identifies design, piece_no identifies lot)
+--
+-- Saleable Inventory Query: Design-scoped
+--   WHERE ii.design_no = p_design_no
+--
+-- Recommendation: Explicit lot_id field on sales_order_items (FUTURE)
+
+-- ============================================================================
+-- RESERVED QUANTITY SYNCHRONIZATION (Sales Order Model)
+-- ============================================================================
+--
+-- Current State: SYNCHRONIZED
+--
+-- Invariant:
+--   sales_order_items.qty_reserved
+--   = qty allocated from inventory_items
+--
+-- Mechanism:
+--   confirm_stock_reservation() RPC:
+--   1. Updates inventory_items.reserved_qty
+--   2. Updates sales_order_items.qty_reserved (same value)
+--
+-- No Drift Possible: Both fields updated in same transaction
+-- No Aggregation Needed: Direct field tracking (not SUM aggregates)
+
+-- ============================================================================
+-- INDEX OPTIMIZATION
+-- ============================================================================
+--
+-- Recommended indexes for reservation queries (already exist):
+--   idx_stock_reservations_item_id
+--   idx_stock_reservations_approval_status
+--   idx_sales_order_items_stock_reservation_id
+--   idx_sales_order_items_inventory_item_id
+--   idx_inventory_items_reserved_qty
+
+-- Add warehouse-scoped reservation queries (for future warehouse allocation)
+CREATE INDEX IF NOT EXISTS idx_sales_order_items_warehouse_status
+  ON public.sales_order_items(order_id, qty_reserved)
+  WHERE qty_reserved > 0;
+
+-- Add qty_reserved discovery for fulfillment
+CREATE INDEX IF NOT EXISTS idx_sales_order_items_qty_reserved
+  ON public.sales_order_items(order_id, qty_reserved DESC);
+
+-- ============================================================================
+-- CONSTRAINTS VERIFICATION
+-- ============================================================================
+--
+-- stock_reservations.qty_reserved:
+--   CHECK (qty_reserved > 0) ✓ EXISTS
+--
+-- sales_order_items.qty_reserved:
+--   CHECK (qty_reserved >= 0 AND qty_reserved <= qty_metre) ✓ EXISTS
+--
+-- sales_order_items.qty_metre:
+--   CHECK (qty_metre > 0) ✓ EXISTS
+--
+-- sales_order_items.qty_dispatched:
+--   CHECK (qty_dispatched >= 0 AND qty_dispatched <= qty_metre) ✓ EXISTS
+
+-- ============================================================================
+-- ACTIVE STATUS DEFINITION
+-- ============================================================================
+--
+-- For Saleable Inventory Deduction:
+--
+--   ACTIVE RESERVATIONS (reduce available inventory):
+--   - sales_order_items.qty_reserved > 0
+--   - RPC-created (implicit active)
+--
+--   INACTIVE RESERVATIONS (do not reduce):
+--   - sales_order_items.qty_reserved = 0 (unreserved)
+--   - stock_reservations with status in (REJECTED, EXPIRED, CANCELLED)
+--
+-- Saleable Qty Formula (from get_saleable_inventory):
+--   available_qty = ii.total_qty - ii.reserved_qty
+--   saleable_qty = CASE WHEN grade = 'Grade A' THEN available_qty ELSE 0 END
+
+-- ============================================================================
+-- FOREIGN KEY RELATIONSHIPS
+-- ============================================================================
+--
+-- Sales Order Reservation Chain:
+--   sales_order_items
+--     → inventory_item_id FK → inventory_items(id)
+--     → stock_reservation_id FK → stock_reservations(id)
+--     → order_id FK → sales_orders(id)
+--
+-- Warehouse Scope:
+--   sales_orders.warehouse_id FK → warehouses(id)
+--   Applies to all reservations for that order
+--
+-- User Tracking:
+--   reserved_by VARCHAR → Supabase auth.users.email
+--   released_by VARCHAR → Supabase auth.users.email (future)
+
+-- ============================================================================
+-- SUMMARY
+-- ============================================================================
+--
+-- STEP 3G Fixed:
+--   ✓ Identified canonical reservation table (stock_reservations)
+--   ✓ Clarified Sales Order model (qty_reserved fields)
+--   ✓ Removed reference to nonexistent inventory_reservations table
+--   ✓ Confirmed RPC implementations use correct fields
+--   ✓ Verified quantity field constraints exist
+--   ✓ Documented warehouse/lot/status relationships
+--   ✓ Added indexes for fulfillment queries
+--
+-- No Data Changes: Pure schema documentation and index optimization
+-- No Table Creation: inventory_reservations was never needed
+-- Backward Compatible: All existing code continues to work
+--
+-- Next Step (STEP 3H):
+--   - Atomic reservation locking for concurrent access
+--   - Consider warehouse-specific allocation model
+--   - Consider lot-specific reservation tracking if needed

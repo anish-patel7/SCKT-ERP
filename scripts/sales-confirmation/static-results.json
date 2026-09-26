@@ -1,0 +1,12 @@
+{
+  "ambiguous_select_status": 0,
+  "stale_party_name": 0,
+  "invalid_broker_party_id": 0,
+  "ordered_quantity": 0,
+  "reserved_quantity": 0,
+  "dispatched_quantity": 0,
+  "deprecated_authenticated_grants": 0,
+  "unrelated_sql_changed": false,
+  "frozen_files_changed": [],
+  "unsafe_search_path": []
+}

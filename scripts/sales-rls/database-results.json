@@ -1,0 +1,440 @@
+[
+  {
+    "test": "fixture: canonical mappings and current permission catalog",
+    "pass": true,
+    "output": "",
+    "error": ""
+  },
+  {
+    "test": "Admin has canonical mapping and no legacy Admin profile",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "Admin create header with returned row",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000001",
+    "error": ""
+  },
+  {
+    "test": "Admin create line with returned row",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000001",
+    "error": ""
+  },
+  {
+    "test": "Admin list/read header and line",
+    "pass": true,
+    "output": "DRAFT:1",
+    "error": ""
+  },
+  {
+    "test": "Admin update Draft",
+    "pass": true,
+    "output": "1",
+    "error": ""
+  },
+  {
+    "test": "Admin confirm RPC",
+    "pass": true,
+    "output": "CONFIRMED",
+    "error": ""
+  },
+  {
+    "test": "Admin immediate post-confirm fetch with lines",
+    "pass": true,
+    "output": "CONFIRMED:1",
+    "error": ""
+  },
+  {
+    "test": "Admin authoritative actor and customer snapshot",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "Admin confirmed header mutation denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot modify customer_name_snapshot (historical record)\nCONTEXT:  PL/pgSQL function validate_sales_order_update() line 17 at RAISE"
+  },
+  {
+    "test": "Admin confirmed line quantity denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot change ordered quantity after confirmation\nCONTEXT:  PL/pgSQL function validate_sales_order_item_update() line 24 at RAISE"
+  },
+  {
+    "test": "Admin confirmed commercial rate denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot modify approved_sale_rate (pricing snapshot)\nCONTEXT:  PL/pgSQL function validate_sales_order_item_update() line 34 at RAISE"
+  },
+  {
+    "test": "Admin protected state unchanged",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales create header with returned row",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000002",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales create line with returned row",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000002",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales list/read header and line",
+    "pass": true,
+    "output": "DRAFT:1",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales update Draft",
+    "pass": true,
+    "output": "1",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales confirm RPC",
+    "pass": true,
+    "output": "CONFIRMED",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales immediate post-confirm fetch with lines",
+    "pass": true,
+    "output": "CONFIRMED:1",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales authoritative actor and customer snapshot",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "Custom Sales confirmed header mutation denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot modify customer_name_snapshot (historical record)\nCONTEXT:  PL/pgSQL function validate_sales_order_update() line 17 at RAISE"
+  },
+  {
+    "test": "Custom Sales confirmed line quantity denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot change ordered quantity after confirmation\nCONTEXT:  PL/pgSQL function validate_sales_order_item_update() line 24 at RAISE"
+  },
+  {
+    "test": "Custom Sales confirmed commercial rate denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot modify approved_sale_rate (pricing snapshot)\nCONTEXT:  PL/pgSQL function validate_sales_order_item_update() line 34 at RAISE"
+  },
+  {
+    "test": "Custom Sales protected state unchanged",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "unauthorized header read returns no rows",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "unauthorized line read returns no rows",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "unauthorized insert denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row violates row-level security policy for table \"sales_orders\""
+  },
+  {
+    "test": "unauthorized update affects no rows",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "unauthorized line insert denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row violates row-level security policy for table \"sales_order_items\""
+  },
+  {
+    "test": "unauthorized line update affects no rows",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "unauthorized direct confirmation denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Permission denied: sales:update required\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 17 at RAISE"
+  },
+  {
+    "test": "anon read denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  permission denied for table sales_orders"
+  },
+  {
+    "test": "anon insert denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  permission denied for table sales_orders"
+  },
+  {
+    "test": "anon update denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  permission denied for table sales_orders"
+  },
+  {
+    "test": "anon confirm denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  permission denied for function confirm_sales_order"
+  },
+  {
+    "test": "custom creates second draft before permission removal",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000005",
+    "error": ""
+  },
+  {
+    "test": "custom creates line before permission removal",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000005",
+    "error": ""
+  },
+  {
+    "test": "remove custom sales:update",
+    "pass": true,
+    "output": "",
+    "error": ""
+  },
+  {
+    "test": "custom retains read after update removal",
+    "pass": true,
+    "output": "DRAFT:1",
+    "error": ""
+  },
+  {
+    "test": "custom header update denied after removal",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "custom line update denied after removal",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "custom RPC denied after removal",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Permission denied: sales:update required\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 17 at RAISE"
+  },
+  {
+    "test": "permission removal leaves Draft unchanged",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "rollback fixture 6",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000006",
+    "error": ""
+  },
+  {
+    "test": "line failure before rollback 6",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row for relation \"sales_order_items\" violates check constraint \"qty_positive\""
+  },
+  {
+    "test": "creator empty header rollback 6",
+    "pass": true,
+    "output": "1",
+    "error": ""
+  },
+  {
+    "test": "rollback header absent 6",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "rollback fixture 7",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000007",
+    "error": ""
+  },
+  {
+    "test": "line failure before rollback 7",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row for relation \"sales_order_items\" violates check constraint \"qty_positive\""
+  },
+  {
+    "test": "creator empty header rollback 7",
+    "pass": true,
+    "output": "1",
+    "error": ""
+  },
+  {
+    "test": "rollback header absent 7",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "rollback fixture 8",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000008",
+    "error": ""
+  },
+  {
+    "test": "line failure before rollback 8",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row for relation \"sales_order_items\" violates check constraint \"qty_positive\""
+  },
+  {
+    "test": "creator empty header rollback 8",
+    "pass": true,
+    "output": "1",
+    "error": ""
+  },
+  {
+    "test": "rollback header absent 8",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "rollback cannot delete populated Draft",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "rollback cannot delete confirmed order",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "other creator empty draft fixture",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000009",
+    "error": ""
+  },
+  {
+    "test": "rollback cannot delete another creator header",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "timestamped empty confirmed fixture",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000010",
+    "error": ""
+  },
+  {
+    "test": "rollback cannot delete timestamped confirmation",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "unauthorized delete affects no rows",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "delete cannot use missing identity claims",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "empty draft for create permission removal",
+    "pass": true,
+    "output": "b3000000-0000-0000-0000-000000000011",
+    "error": ""
+  },
+  {
+    "test": "remove custom sales:create",
+    "pass": true,
+    "output": "",
+    "error": ""
+  },
+  {
+    "test": "rollback denied after create permission removed",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "insert denied after create permission removed",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row violates row-level security policy for table \"sales_orders\""
+  },
+  {
+    "test": "line insert denied when no create/update permission",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  new row violates row-level security policy for table \"sales_order_items\""
+  },
+  {
+    "test": "read-only line visibility preserved",
+    "pass": true,
+    "output": "1",
+    "error": ""
+  },
+  {
+    "test": "read-only cannot delete line",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "final header policies are permission-based only",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "final header policy count",
+    "pass": true,
+    "output": "4",
+    "error": ""
+  },
+  {
+    "test": "all policy permission codes seeded",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  }
+]

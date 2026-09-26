@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="favGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE885"/>
+      <stop offset="40%" stop-color="#E5B842"/>
+      <stop offset="80%" stop-color="#C5941C"/>
+      <stop offset="100%" stop-color="#845903"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Background Badge for High Contrast Tab Visibility -->
+  <rect width="64" height="64" rx="14" fill="#091624"/>
+
+  <g transform="translate(6, 4) scale(0.17)">
+    <!-- Crescent C -->
+    <path d="M 130,20 C 60,20 10,70 10,145 C 10,220 60,270 130,270 C 90,250 50,210 50,145 C 50,80 90,40 130,20 Z" fill="url(#favGold)"/>
+
+    <!-- Grid -->
+    <g stroke="url(#favGold)" stroke-width="9" stroke-linecap="round">
+      <line x1="72" y1="110" x2="72" y2="180"/>
+      <line x1="90" y1="110" x2="90" y2="180"/>
+      <line x1="108" y1="110" x2="108" y2="180"/>
+      <line x1="58" y1="125" x2="122" y2="125"/>
+      <line x1="58" y1="145" x2="122" y2="145"/>
+      <line x1="58" y1="165" x2="122" y2="165"/>
+    </g>
+
+    <!-- K Stem -->
+    <rect x="135" y="95" width="22" height="155" rx="5" fill="url(#favGold)"/>
+
+    <!-- K Upper Swoosh -->
+    <path d="M 138,155 C 170,110 210,75 270,80 C 230,100 190,135 152,178 Z" fill="url(#favGold)"/>
+
+    <!-- K Leg -->
+    <path d="M 145,165 L 245,265 L 215,265 L 135,185 Z" fill="url(#favGold)"/>
+  </g>
+</svg>

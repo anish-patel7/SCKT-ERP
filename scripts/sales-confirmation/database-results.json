@@ -1,0 +1,178 @@
+[
+  {
+    "test": "valid fixtures with all constraints active",
+    "pass": true,
+    "output": "",
+    "error": ""
+  },
+  {
+    "test": "restricted user denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Permission denied: sales:update required\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 17 at RAISE"
+  },
+  {
+    "test": "restricted attempt has no side effects",
+    "pass": true
+  },
+  {
+    "test": "anonymous denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  permission denied for function confirm_sales_order"
+  },
+  {
+    "test": "missing uid denied",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Authentication required\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 14 at RAISE"
+  },
+  {
+    "test": "anonymous and missing uid have no side effects",
+    "pass": true
+  },
+  {
+    "test": "canonical Admin confirms real order with lines",
+    "pass": true,
+    "output": "{\"order_id\":\"a3000000-0000-0000-0000-000000000001\",\"status\":\"CONFIRMED\",\"customer_name_snapshot\":\"Canonical Customer\",\"broker_name_snapshot\":\"Order-entered Broker\",\"confirmed_at\":\"2026-09-26T01:10:48.633172+05:30\",\"line_count\":2}",
+    "error": ""
+  },
+  {
+    "test": "unchanged RPC return contract",
+    "pass": true
+  },
+  {
+    "test": "header snapshot addresses and authoritative actor",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "linked commercial snapshots use canonical fields",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "optional design/cost links preserve manual design and agreed rate",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "canonical quantities unchanged",
+    "pass": true,
+    "output": "[[10.00, 3.00, 2.00], [2.00, 0.00, 0.00]]",
+    "error": ""
+  },
+  {
+    "test": "confirmation creates no reservation or inventory records",
+    "pass": true,
+    "output": "0:0",
+    "error": ""
+  },
+  {
+    "test": "already confirmed rejected cleanly",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot confirm order a3000000-0000-0000-0000-000000000001 in CONFIRMED status (must be DRAFT)\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 34 at RAISE"
+  },
+  {
+    "test": "repeat confirmation has no duplicate side effects",
+    "pass": true
+  },
+  {
+    "test": "independent diagnostics rolled back without side effects",
+    "pass": true
+  },
+  {
+    "test": "existing immutability trigger with visible parent",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot change ordered quantity after confirmation\nCONTEXT:  PL/pgSQL function validate_sales_order_item_update() line 24 at RAISE"
+  },
+  {
+    "test": "nonexistent order rejected",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Order not found: a9990000-0000-0000-0000-000000000001\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 31 at RAISE"
+  },
+  {
+    "test": "missing customer prevented by foreign key",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  insert or update on table \"sales_orders\" violates foreign key constraint \"sales_orders_customer_id_fkey\"\nDETAIL:  Key (customer_id)=(a9990000-0000-0000-0000-000000000001) is not present in table \"customers\"."
+  },
+  {
+    "test": "blank canonical party name rejected without bypassing constraints",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Customer has no valid party name for order a5000000-0000-0000-0000-000000000001\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 45 at RAISE"
+  },
+  {
+    "test": "invalid customer leaves order draft and lines unapproved",
+    "pass": true,
+    "output": "t",
+    "error": ""
+  },
+  {
+    "test": "empty order rejected",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Order must have at least one line before confirmation\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 59 at RAISE"
+  },
+  {
+    "test": "invalid commercial rate rejected",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Order contains invalid quantities or commercial line fields\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 70 at RAISE"
+  },
+  {
+    "test": "SHIPPED order rejected",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot confirm order a5000000-0000-0000-0000-000000000004 in SHIPPED status (must be DRAFT)\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 34 at RAISE"
+  },
+  {
+    "test": "CANCELLED order rejected",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  Cannot confirm order a5000000-0000-0000-0000-000000000005 in CANCELLED status (must be DRAFT)\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 34 at RAISE"
+  },
+  {
+    "test": "custom sales:update role allowed without Admin",
+    "pass": true,
+    "output": "CONFIRMED",
+    "error": ""
+  },
+  {
+    "test": "confirm RPC ACL",
+    "pass": true,
+    "output": "false:true",
+    "error": ""
+  },
+  {
+    "test": "deprecated RPC authenticated ACL revoked",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  permission denied for function confirm_sales_order_with_reservation"
+  },
+  {
+    "test": "both functions deny PUBLIC execution",
+    "pass": true,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "both fixed definer search paths",
+    "pass": true,
+    "output": "2",
+    "error": ""
+  },
+  {
+    "test": "deprecated body cannot mutate even for owner",
+    "pass": true,
+    "output": "",
+    "error": "ERROR:  confirm_sales_order_with_reservation is deprecated; confirm the order and use the separate reservation flow\nCONTEXT:  PL/pgSQL function confirm_sales_order_with_reservation(uuid,character varying) line 12 at RAISE"
+  }
+]

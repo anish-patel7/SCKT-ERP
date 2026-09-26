@@ -1,0 +1,14 @@
+{
+  "malformed_delimiters": 0,
+  "policies": 233,
+  "duplicate_policies": 0,
+  "unknown_backend_permissions": [],
+  "unknown_reachable_frontend_permissions": [],
+  "blanket_client_function_grants": 0,
+  "obsolete_reserved_qty_rpc": 0,
+  "destructive_schema_reset": 0,
+  "unsafe_definer_search_paths": [],
+  "spoofable_actor_assignments": [],
+  "business_or_historical_source_changes": [],
+  "incorrect_documented_env_name": 0
+}

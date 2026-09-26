@@ -1,0 +1,20 @@
+[
+  {
+    "test": "service follow-up header read visible to canonical role-mapped Admin",
+    "pass": false,
+    "output": "0",
+    "error": ""
+  },
+  {
+    "test": "confirmed quantity remains immutable for role-mapped Admin",
+    "pass": false,
+    "output": "",
+    "error": ""
+  },
+  {
+    "test": "confirmed pricing remains immutable for role-mapped Admin",
+    "pass": false,
+    "output": "",
+    "error": ""
+  }
+]

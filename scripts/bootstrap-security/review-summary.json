@@ -1,0 +1,27 @@
+{
+  "status": "PARTIAL",
+  "fresh_bootstrap": "PASS",
+  "build": "PASS",
+  "typecheck": "FAIL",
+  "typecheck_errors": 605,
+  "changed_file_typecheck_errors": 0,
+  "lint": "FAIL",
+  "lint_errors": 76794,
+  "lint_warnings": 10,
+  "focused_tests_passed": 51,
+  "focused_tests_failed": 1,
+  "historical_migrations": 77,
+  "remote_actions": {
+    "github_push": false,
+    "supabase_sql": false,
+    "vercel_deployment": false
+  },
+  "blockers": [
+    "Admin Sales confirmation: column reference \"status\" is ambiguous in confirm_sales_order.",
+    "605 TypeScript errors in unchanged application source.",
+    "76794 lint errors and 10 warnings, predominantly existing CRLF formatting.",
+    "Exhaustive column/HTTP contracts not proven: 31 nested select expressions and dynamic payloads need review."
+  ],
+  "bootstrap_sha256": "49ef6086c6580437ecd2cdae2a81e998bf0c0921c621bb5ee3eb5f14eba73471",
+  "setup_sha256": "61cc720e0769baafe1c0bcbe161df6d8871d8951bfcbcec2eef385c3c71812e9"
+}

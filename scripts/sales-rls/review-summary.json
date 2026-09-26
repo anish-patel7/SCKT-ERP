@@ -1,0 +1,20 @@
+{
+  "status": "PASS - SALES RLS SCOPE",
+  "fresh_bootstrap": "PASS",
+  "build": "PASS",
+  "focused_tests_passed": 73,
+  "focused_tests_failed": 0,
+  "typecheck": "FAIL - existing unrelated errors",
+  "typecheck_errors": 605,
+  "changed_file_typecheck_errors": 0,
+  "unrelated_sql_or_frontend_changes": false,
+  "remaining_sales_rls_blockers": [],
+  "before_bootstrap_sha256": "e0d30e311b4a0882861767d959cb36f80e8a4c4418ab05a4992bd15ed77d2174",
+  "after_bootstrap_sha256": "83fdf494fe8154001f1bf94bf36cfa57fd14d7cd2c7d5341b339ff1a9b57de7b",
+  "remote_actions": {
+    "github": false,
+    "supabase": false,
+    "vercel": false
+  },
+  "test_scope": "Real SQL role tests matching service statements; no browser/HTTP claim."
+}

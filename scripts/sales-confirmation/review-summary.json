@@ -1,0 +1,20 @@
+{
+  "status": "PARTIAL",
+  "fresh_bootstrap": "PASS",
+  "rpc_tests_passed": 31,
+  "rpc_tests_failed": 0,
+  "independent_sales_diagnostics_failed": 3,
+  "ui_test": "BLOCKED",
+  "build": "PASS",
+  "typecheck": "FAIL",
+  "typecheck_errors": 605,
+  "changed_file_typecheck_errors": 0,
+  "highest_priority_blocker": "Existing Sales header RLS hides orders from canonical role-mapped Admin, breaking the service follow-up fetch and parent visibility in the line immutability trigger. Recorded without changing RLS.",
+  "before_bootstrap_sha256": "49ef6086c6580437ecd2cdae2a81e998bf0c0921c621bb5ee3eb5f14eba73471",
+  "after_bootstrap_sha256": "e0d30e311b4a0882861767d959cb36f80e8a4c4418ab05a4992bd15ed77d2174",
+  "remote_actions": {
+    "github": false,
+    "supabase": false,
+    "vercel": false
+  }
+}

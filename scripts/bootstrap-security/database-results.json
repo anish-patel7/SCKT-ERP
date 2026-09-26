@@ -1,0 +1,234 @@
+[
+  {
+    "test": "test users and roles",
+    "pass": true,
+    "output": "INSERT 0 4\nINSERT 0 3\nINSERT 0 4\nDELETE 0\nINSERT 0 2\nINSERT 0 1",
+    "error": ""
+  },
+  {
+    "test": "custom role read",
+    "pass": true,
+    "output": "SET\nSET\n1",
+    "error": ""
+  },
+  {
+    "test": "custom create initially denied",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  new row violates row-level security policy for table \"masters\""
+  },
+  {
+    "test": "grant custom create",
+    "pass": true,
+    "output": "INSERT 0 1",
+    "error": ""
+  },
+  {
+    "test": "custom create allowed",
+    "pass": true,
+    "output": "SET\nSET\nINSERT 0 1",
+    "error": ""
+  },
+  {
+    "test": "remove custom create",
+    "pass": true,
+    "output": "DELETE 1",
+    "error": ""
+  },
+  {
+    "test": "custom create denied after removal",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  new row violates row-level security policy for table \"masters\""
+  },
+  {
+    "test": "Admin master create",
+    "pass": true,
+    "output": "SET\nSET\nINSERT 0 1",
+    "error": ""
+  },
+  {
+    "test": "restricted direct mutation",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  new row violates row-level security policy for table \"masters\""
+  },
+  {
+    "test": "anon inventory",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for function allocate_inventory_for_sales"
+  },
+  {
+    "test": "restricted inventory",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  Permission denied: sales:update required\nCONTEXT:  PL/pgSQL function allocate_inventory_for_sales(uuid,character varying,numeric,uuid) line 14 at RAISE"
+  },
+  {
+    "test": "anon production",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for function complete_job_output"
+  },
+  {
+    "test": "restricted production",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  Permission denied: production:update required\nCONTEXT:  PL/pgSQL function complete_job_output(uuid,numeric,character varying,character varying) line 15 at RAISE"
+  },
+  {
+    "test": "anon quality",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for function complete_quality_inspection"
+  },
+  {
+    "test": "restricted quality",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  Permission denied: quality:write required\nCONTEXT:  PL/pgSQL function complete_quality_inspection(uuid,character varying,character varying,character varying) line 19 at RAISE"
+  },
+  {
+    "test": "anon sales",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for function confirm_sales_order"
+  },
+  {
+    "test": "restricted sales",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  Permission denied: sales:update required\nCONTEXT:  PL/pgSQL function confirm_sales_order(uuid,character varying) line 16 at RAISE"
+  },
+  {
+    "test": "anon reservation",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for function approve_stock_reservation_atomic"
+  },
+  {
+    "test": "restricted reservation",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  Permission denied to approve stock reservation\nCONTEXT:  PL/pgSQL function approve_stock_reservation_atomic(uuid) line 22 at RAISE"
+  },
+  {
+    "test": "anon payment",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for function allocate_payment_atomic"
+  },
+  {
+    "test": "restricted payment",
+    "pass": true,
+    "output": "SET\nSET\n(f,,1a15119e-1952-493c-bfd2-24f0dd0ed296,b5300745-0bb1-41f3-9d1b-0b558dac7168,0,0,0,0,,\"Error: Permission denied: sales:update required\")",
+    "error": ""
+  },
+  {
+    "test": "anon master insert",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for table masters"
+  },
+  {
+    "test": "anon inventory select",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for table inventory_items"
+  },
+  {
+    "test": "anon inventory view",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for view vw_inventory_available_qty"
+  },
+  {
+    "test": "Admin cost sheet delete denied",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for table cost_sheets"
+  },
+  {
+    "test": "restricted cost sheet delete denied",
+    "pass": true,
+    "output": "SET\nSET",
+    "error": "ERROR:  permission denied for table cost_sheets"
+  },
+  {
+    "test": "reservation fixture",
+    "pass": true,
+    "output": "INSERT 0 1\nINSERT 0 2",
+    "error": ""
+  },
+  {
+    "test": "concurrent reservation 60+60 against 100",
+    "pass": true,
+    "outcomes": [
+      {
+        "exit": 3,
+        "output": "SET\nSET\n",
+        "error": "ERROR:  Insufficient stock available (60.00 requested, 40.00 available)\nCONTEXT:  PL/pgSQL function approve_stock_reservation_atomic(uuid) line 69 at RAISE\n"
+      },
+      {
+        "exit": 0,
+        "output": "SET\nSET\n{\"status\": \"APPROVED\", \"item_id\": \"20000000-0000-0000-0000-000000000001\", \"success\": true, \"approved_qty\": 60.00, \"reservation_id\": \"20000000-0000-0000-0000-000000000003\", \"new_reserved_qty\": 60.00}\n",
+        "error": ""
+      }
+    ]
+  },
+  {
+    "test": "reservation final quantity and no partial update",
+    "pass": true,
+    "output": "60.00:1:1",
+    "error": ""
+  },
+  {
+    "test": "quality fixture",
+    "pass": true,
+    "output": "INSERT 0 1\nINSERT 0 1\nINSERT 0 1\nINSERT 0 1\nUPDATE 1",
+    "error": ""
+  },
+  {
+    "test": "authorized Quality completion spoof attempt",
+    "pass": true,
+    "output": "SET\nSET\n30000000-0000-0000-0000-000000000001|30000000-0000-0000-0000-000000000011|Grade A|Grade A|100.0000|2026-09-26 00:43:56.025799+05:30",
+    "error": ""
+  },
+  {
+    "test": "Quality stored actor is auth uid",
+    "pass": true,
+    "output": "10000000-0000-0000-0000-000000000004",
+    "error": ""
+  },
+  {
+    "test": "Admin Quality fixture",
+    "pass": true,
+    "output": "INSERT 0 1",
+    "error": ""
+  },
+  {
+    "test": "Admin Quality override preserves grading",
+    "pass": true,
+    "output": "SET\nSET\nHold:0",
+    "error": ""
+  },
+  {
+    "test": "Quality Grade A quantity",
+    "pass": true,
+    "output": "COMPLETED:Grade A",
+    "error": ""
+  },
+  {
+    "test": "future function privileges denied",
+    "pass": true,
+    "output": "BEGIN\nCREATE FUNCTION\nfalse:false\nROLLBACK",
+    "error": ""
+  },
+  {
+    "test": "database ACL and object counts",
+    "pass": true,
+    "output": "{\"tables\" : 60, \"views\" : 1, \"functions\" : 65, \"triggers\" : 16, \"rls_tables\" : 60, \"policies\" : 227, \"roles\" : 4, \"permissions\" : 38, \"definers\" : 40, \"anon_executable\" : 0, \"public_executable\" : 0, \"authenticated_functions\" : [\"allocate_inventory_for_sales(uuid,character varying,numeric,uuid)\", \"allocate_payment_atomic(uuid,uuid,numeric)\", \"approve_stock_reservation_atomic(uuid)\", \"complete_job_output(uuid,numeric,character varying,character varying)\", \"complete_quality_inspection(uuid,character varying,character varying,character varying)\", \"confirm_sales_order(uuid,character varying)\", \"confirm_sales_order_with_reservation(uuid,character varying)\", \"get_inventory_by_quality_grade(uuid,character varying)\", \"get_saleable_inventory(uuid,character varying,character varying)\", \"get_user_effective_permissions(uuid)\", \"has_role(uuid,text)\", \"is_admin(uuid)\", \"issue_material_to_production(uuid,uuid,numeric,character varying)\", \"record_payment_atomic(uuid,numeric,character varying,character varying,date,text)\", \"save_design(uuid,jsonb,jsonb)\", \"user_has_permission(uuid,character varying)\", \"user_has_permission_v2(uuid,character varying)\"], \"views_detail\" : [{\"view\" : \"vw_inventory_available_qty\", \"owner\" : \"postgres\", \"options\" : [\"security_invoker=true\"], \"anon_select\" : false, \"authenticated_select\" : true}]}",
+    "error": ""
+  }
+]
