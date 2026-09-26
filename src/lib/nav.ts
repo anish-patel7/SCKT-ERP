@@ -35,9 +35,9 @@ export const NAV: NavGroup[] = [
   {
     label: "Design",
     items: [
-      { label: "Designs", to: "/designs", phase: 2 },
-      { label: "Image Gallery", to: "/gallery", phase: 2 },
-      { label: "Feeder Cross-Reference", to: "/feeders", phase: 2 },
+      { label: "Designs", to: "/designs" },
+      { label: "Image Gallery", to: "/gallery" },
+      { label: "Feeder Cross-Reference", to: "/feeders" },
     ],
   },
   {
