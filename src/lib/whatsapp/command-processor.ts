@@ -1,4 +1,4 @@
-// WeaveOne Rule-Based WhatsApp Command Engine (STRICTLY NON-AI — Section 5 & 31 of Spec)
+// SCKT Rule-Based WhatsApp Command Engine (STRICTLY NON-AI — Section 5 & 31 of Spec)
 import type { CommandCategory, CommandRequest, CommandResponse, WhatsAppUser } from "./types";
 import { canUserAccessCategory } from "./rbac-permissions";
 import { getInventory } from "@/lib/inventory-store";
@@ -54,7 +54,7 @@ export function parseCommandCategory(rawText: string): {
 }
 
 /**
- * Executes a deterministic, rule-based ERP command query over WeaveOne data engines.
+ * Executes a deterministic, rule-based ERP command query over SCKT data engines.
  */
 export function executeWhatsAppCommand(
   req: CommandRequest,
@@ -65,7 +65,7 @@ export function executeWhatsAppCommand(
   // 1. RBAC Permission Check
   if (!canUserAccessCategory(user, category)) {
     return {
-      formatted_text: `🔒 *ACCESS DENIED*\n\nYou do not have permission to view *${category}* information.\n\nPlease contact your WeaveOne system administrator.`,
+      formatted_text: `🔒 *ACCESS DENIED*\n\nYou do not have permission to view *${category}* information.\n\nPlease contact your SCKT system administrator.`,
       category,
       required_role_granted: false,
     };
@@ -313,7 +313,7 @@ function handleQualityCommand(params: string[]): CommandResponse {
 }
 
 function handleReportsCommand(): CommandResponse {
-  const text = `📊 *WEAVEONE ERP REPORTS*
+  const text = `📊 *SCKT ERP REPORTS*
 
 1. Daily Production Report
 2. Inventory Valuation Report
@@ -321,7 +321,7 @@ function handleReportsCommand(): CommandResponse {
 4. Pending Sales Orders Ledger
 5. Aged Receivables Outstanding Report
 
-_Reply with report number or visit the WeaveOne Web App to download PDF/Excel reports._`;
+_Reply with report number or visit the SCKT Web App to download PDF/Excel reports._`;
 
   return { formatted_text: text, category: "REPORTS", required_role_granted: true };
 }
@@ -336,7 +336,7 @@ function handleSummaryCommand(user: WhatsAppUser | null): CommandResponse {
     };
   }
 
-  const text = `📊 *WEAVEONE MANAGEMENT EXECUTIVE SUMMARY*
+  const text = `📊 *SCKT MANAGEMENT EXECUTIVE SUMMARY*
 
 *Date:* ${new Date().toLocaleDateString("en-IN")}
 

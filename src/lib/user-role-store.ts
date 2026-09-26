@@ -537,7 +537,7 @@ const INITIAL_SESSIONS: UserSession[] = [
   {
     id: "sess-001",
     user_id: "usr-admin-01",
-    user_name: "WeaveOne Admin",
+    user_name: "SCKT Admin",
     device: "Windows Desktop PC",
     browser: "Chrome 127.0",
     login_time: "2026-08-09T21:30:00Z",
@@ -548,7 +548,7 @@ const INITIAL_SESSIONS: UserSession[] = [
   {
     id: "sess-002",
     user_id: "usr-user-02",
-    user_name: "WeaveOne Standard User",
+    user_name: "SCKT Standard User",
     device: "MacBook Pro M2",
     browser: "Safari 17.4",
     login_time: "2026-08-09T20:15:00Z",
@@ -571,7 +571,7 @@ const INITIAL_AUDITS: UserAuditLog[] = [
   {
     id: "aud-002",
     timestamp: "2026-08-08T17:30:00Z",
-    performed_by_name: "WeaveOne Admin",
+    performed_by_name: "SCKT Admin",
     target_user_name: "Karan Verma",
     action: "USER_REJECTED",
     previous_value: "PENDING_APPROVAL",
@@ -581,7 +581,7 @@ const INITIAL_AUDITS: UserAuditLog[] = [
   {
     id: "aud-003",
     timestamp: "2026-08-03T09:15:00Z",
-    performed_by_name: "WeaveOne Admin",
+    performed_by_name: "SCKT Admin",
     target_user_name: "Amit Patel",
     action: "USER_CREATED_DIRECT",
     new_value: "ACTIVE (Production Manager)",
@@ -589,10 +589,10 @@ const INITIAL_AUDITS: UserAuditLog[] = [
   },
 ];
 
-const STORAGE_USERS = "weaveone_users_v1";
-const STORAGE_ROLES = "weaveone_roles_v1";
-const STORAGE_SESSIONS = "weaveone_sessions_v1";
-const STORAGE_AUDITS = "weaveone_audits_v1";
+const STORAGE_USERS = "sckt_users_v1";
+const STORAGE_ROLES = "sckt_roles_v1";
+const STORAGE_SESSIONS = "sckt_sessions_v1";
+const STORAGE_AUDITS = "sckt_audits_v1";
 
 function loadStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -659,7 +659,7 @@ export function getUserStore() {
     // Workflow A: Admin Direct User Creation
     addUserDirect: (
       input: Omit<UserProfile, "id" | "created_at" | "approval_status" | "creation_method">,
-      adminName = "WeaveOne Admin",
+      adminName = "SCKT Admin",
     ) => {
       const currentUsers = loadStorage<UserProfile[]>(STORAGE_USERS, INITIAL_USERS);
       const newId = `usr-${Date.now().toString(36)}`;
@@ -756,7 +756,7 @@ export function getUserStore() {
       userId: string,
       roleId: string,
       remarks: string,
-      adminName = "WeaveOne Admin",
+      adminName = "SCKT Admin",
     ) => {
       const currentUsers = loadStorage<UserProfile[]>(STORAGE_USERS, INITIAL_USERS);
       const target = currentUsers.find((u) => u.id === userId);
@@ -796,7 +796,7 @@ export function getUserStore() {
     },
 
     // Reject Registration Request
-    rejectUserRequest: (userId: string, remarks: string, adminName = "WeaveOne Admin") => {
+    rejectUserRequest: (userId: string, remarks: string, adminName = "SCKT Admin") => {
       if (!remarks.trim()) {
         toast.error("Rejection remarks are mandatory.");
         return;
@@ -844,7 +844,7 @@ export function getUserStore() {
       userId: string,
       status: UserStatus,
       remarks?: string,
-      adminName = "WeaveOne Admin",
+      adminName = "SCKT Admin",
     ) => {
       const currentUsers = loadStorage<UserProfile[]>(STORAGE_USERS, INITIAL_USERS);
       const target = currentUsers.find((u) => u.id === userId);
@@ -895,7 +895,7 @@ export function getUserStore() {
       roleId: string,
       additionalRoles: string[] = [],
       directPermissions: Record<string, boolean> = {},
-      adminName = "WeaveOne Admin",
+      adminName = "SCKT Admin",
     ) => {
       const currentUsers = loadStorage<UserProfile[]>(STORAGE_USERS, INITIAL_USERS);
       const target = currentUsers.find((u) => u.id === userId);
@@ -933,7 +933,7 @@ export function getUserStore() {
     },
 
     // Roles Matrix CRUD
-    addRole: (role: Omit<Role, "id" | "is_system">, adminName = "WeaveOne Admin") => {
+    addRole: (role: Omit<Role, "id" | "is_system">, adminName = "SCKT Admin") => {
       const currentRoles = loadStorage<Role[]>(STORAGE_ROLES, INITIAL_ROLES);
       const newRole: Role = {
         ...role,
@@ -959,7 +959,7 @@ export function getUserStore() {
       return newRole;
     },
 
-    updateRole: (roleId: string, updatedData: Partial<Role>, adminName = "WeaveOne Admin") => {
+    updateRole: (roleId: string, updatedData: Partial<Role>, adminName = "SCKT Admin") => {
       const currentRoles = loadStorage<Role[]>(STORAGE_ROLES, INITIAL_ROLES);
       const updated = currentRoles.map((r) => {
         if (r.id === roleId) {
@@ -986,7 +986,7 @@ export function getUserStore() {
     },
 
     // Sessions Management
-    terminateSession: (sessionId: string, adminName = "WeaveOne Admin") => {
+    terminateSession: (sessionId: string, adminName = "SCKT Admin") => {
       const currentSessions = loadStorage<UserSession[]>(STORAGE_SESSIONS, INITIAL_SESSIONS);
       const target = currentSessions.find((s) => s.id === sessionId);
       const updated = currentSessions.map((s) => {
@@ -1015,7 +1015,7 @@ export function getUserStore() {
     },
 
     // Reset User Password
-    resetUserPassword: (userId: string, tempPass: string, adminName = "WeaveOne Admin") => {
+    resetUserPassword: (userId: string, tempPass: string, adminName = "SCKT Admin") => {
       const currentUsers = loadStorage<UserProfile[]>(STORAGE_USERS, INITIAL_USERS);
       const target = currentUsers.find((u) => u.id === userId);
       if (!target) return;

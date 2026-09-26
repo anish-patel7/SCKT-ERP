@@ -1,4 +1,4 @@
-// WeaveOne WhatsApp Bot Store & Audit Engine (Section 22 & 28 of Spec)
+// SCKT WhatsApp Bot Store & Audit Engine (Section 22 & 28 of Spec)
 import type {
   AuditLogEntry,
   CommandRequest,
@@ -16,14 +16,14 @@ export interface WhatsAppData {
   auditLogs: AuditLogEntry[];
 }
 
-const STORAGE_KEY = "weaveone_whatsapp_v1";
+const STORAGE_KEY = "sckt_whatsapp_v1";
 
 const SEED_USERS: WhatsAppUser[] = [
   {
     id: "usr-001",
     phone_number: "+919876543210",
-    display_name: "WeaveOne Admin (admin@weaveone.com)",
-    weaveone_user_id: "usr-admin-01",
+    display_name: "SCKT Admin (admin@sckt.com)",
+    sckt_user_id: "usr-admin-01",
     role: "admin",
     is_active: true,
     registered_at: "2026-08-01T10:00:00Z",
@@ -31,8 +31,8 @@ const SEED_USERS: WhatsAppUser[] = [
   {
     id: "usr-002",
     phone_number: "+919825012345",
-    display_name: "Standard User (user@weaveone.com)",
-    weaveone_user_id: "usr-user-02",
+    display_name: "Standard User (user@sckt.com)",
+    sckt_user_id: "usr-user-02",
     role: "sales",
     is_active: true,
     registered_at: "2026-08-02T11:30:00Z",
@@ -41,7 +41,7 @@ const SEED_USERS: WhatsAppUser[] = [
     id: "usr-003",
     phone_number: "+919909055443",
     display_name: "Suresh Mehta (Quality Mgr)",
-    weaveone_user_id: "usr-qual-01",
+    sckt_user_id: "usr-qual-01",
     role: "quality",
     is_active: true,
     registered_at: "2026-08-03T14:15:00Z",
@@ -50,7 +50,7 @@ const SEED_USERS: WhatsAppUser[] = [
     id: "usr-004",
     phone_number: "+919712398765",
     display_name: "Ramesh Weaver (Loom Op)",
-    weaveone_user_id: "usr-op-01",
+    sckt_user_id: "usr-op-01",
     role: "operator",
     is_active: true,
     registered_at: "2026-08-04T09:00:00Z",
@@ -130,8 +130,8 @@ const SEED_CONFIG: WhatsAppProviderConfig = {
   phone_number_id: "109845720912",
   meta_app_id: "9812405781249",
   access_token_masked: "EAAG...89Xz",
-  webhook_url: "https://weaveone.erp/api/v1/whatsapp/webhook",
-  webhook_verify_token: "weaveone_secure_token_2026",
+  webhook_url: "https://sckt.erp/api/v1/whatsapp/webhook",
+  webhook_verify_token: "sckt_secure_token_2026",
   webhook_status: "verified",
   mock_mode: true,
 };
@@ -167,7 +167,7 @@ export function saveWhatsAppStore(data: WhatsAppData): void {
  * 1. Authenticates phone number against authorized users.
  * 2. Parses command deterministically (NO AI).
  * 3. Enforces RBAC permissions.
- * 4. Executes WeaveOne business query.
+ * 4. Executes SCKT business query.
  * 5. Formats response text & WhatsApp UI elements.
  * 6. Records an audit log entry.
  */

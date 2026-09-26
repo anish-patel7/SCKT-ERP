@@ -118,7 +118,7 @@ export interface SalesData {
   receipts: ReceiptItem[];
 }
 
-const STORAGE_KEY = "weaveone_sales_v1";
+const STORAGE_KEY = "sckt_sales_v1";
 
 const SEED: SalesData = {
   customers: [

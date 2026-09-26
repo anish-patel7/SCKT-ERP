@@ -1,4 +1,4 @@
-// WeaveOne WhatsApp Automatic Alert Notification Engine (Section 18 of Spec)
+// SCKT WhatsApp Automatic Alert Notification Engine (Section 18 of Spec)
 import type { AlertType, NotificationRule, WhatsAppUser } from "./types";
 import { MockWhatsAppProvider } from "./provider-adapter";
 
@@ -61,7 +61,7 @@ export function formatAlertMessage(payload: AlertPayload): string {
 *Status:* READY FOR PACKING LIST`;
 
     default:
-      return `🔔 *WEAVEONE SYSTEM NOTIFICATION*\n\n${payload.title}`;
+      return `🔔 *SCKT SYSTEM NOTIFICATION*\n\n${payload.title}`;
   }
 }
 

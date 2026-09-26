@@ -1,4 +1,4 @@
-// WeaveOne WhatsApp RBAC & Permission Layer (Section 19 & 20 of Spec)
+// SCKT WhatsApp RBAC & Permission Layer (Section 19 & 20 of Spec)
 import type { CommandCategory, UserRole, WhatsAppUser } from "./types";
 
 export const ROLE_PERMISSIONS: Record<UserRole, CommandCategory[]> = {

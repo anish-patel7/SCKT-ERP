@@ -124,7 +124,7 @@ function WhatsAppAdminPage() {
     {
       id: "c2",
       sender: "bot",
-      text: `📊 *WEAVEONE BUSINESS ASSISTANT*\n\n1️⃣ *Inventory* (Stock, Yarn, Fabric)\n2️⃣ *Production* (Today, Looms, Pending)\n3️⃣ *Loom Status* (Running, Idle, Breakdown)\n4️⃣ *Job Work* (Challans, Balances)\n5️⃣ *Orders* (Sales Orders, Pending)\n6️⃣ *Dispatch* (Today's Packing Lists)\n7️⃣ *Party* (Customer Profiles & Balance)\n8️⃣ *Purchase* (Yarn Reorder Alerts)\n9️⃣ *Quality* (4-Point Scores & Holds)\n🔟 *Reports* (Daily Summary & Analytics)\n\n_Reply with the number (1-10) or type commands like *STOCK DESIGN D-015* or *PRODUCTION TODAY*._`,
+      text: `📊 *SCKT BUSINESS ASSISTANT*\n\n1️⃣ *Inventory* (Stock, Yarn, Fabric)\n2️⃣ *Production* (Today, Looms, Pending)\n3️⃣ *Loom Status* (Running, Idle, Breakdown)\n4️⃣ *Job Work* (Challans, Balances)\n5️⃣ *Orders* (Sales Orders, Pending)\n6️⃣ *Dispatch* (Today's Packing Lists)\n7️⃣ *Party* (Customer Profiles & Balance)\n8️⃣ *Purchase* (Yarn Reorder Alerts)\n9️⃣ *Quality* (4-Point Scores & Holds)\n🔟 *Reports* (Daily Summary & Analytics)\n\n_Reply with the number (1-10) or type commands like *STOCK DESIGN D-015* or *PRODUCTION TODAY*._`,
       timestamp: "18:05",
       buttons: [
         { id: "b1", title: "📦 Inventory" },
@@ -144,7 +144,7 @@ function WhatsAppAdminPage() {
       id: uid("usr"),
       phone_number: userForm.phone_number.trim(),
       display_name: userForm.display_name.trim(),
-      weaveone_user_id: uid("u"),
+      sckt_user_id: uid("u"),
       role: userForm.role,
       is_active: true,
       registered_at: new Date().toISOString(),

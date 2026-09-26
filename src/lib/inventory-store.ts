@@ -88,7 +88,7 @@ export interface InventoryData {
   movements: StockMovement[];
 }
 
-const STORAGE_KEY = "weaveone_inventory_v1";
+const STORAGE_KEY = "sckt_inventory_v1";
 
 const SEED: InventoryData = {
   yarn: [

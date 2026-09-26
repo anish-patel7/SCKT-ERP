@@ -70,7 +70,7 @@ export interface QualityData {
   labTests: LabTest[];
 }
 
-const STORAGE_KEY = "weaveone_quality_v1";
+const STORAGE_KEY = "sckt_quality_v1";
 
 export function calculatePointsForDefect(sizeInches: number, type: DefectType): number {
   if (type === "hole") return 4;

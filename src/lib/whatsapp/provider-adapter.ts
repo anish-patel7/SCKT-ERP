@@ -1,4 +1,4 @@
-// WeaveOne WhatsApp Provider Adapter Architecture (Section 4 of Spec)
+// SCKT WhatsApp Provider Adapter Architecture (Section 4 of Spec)
 import type { WhatsAppButtonOption, WhatsAppListOption, WhatsAppProviderConfig } from "./types";
 
 export interface WhatsAppProviderPayload {

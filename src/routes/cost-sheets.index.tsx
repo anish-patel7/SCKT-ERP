@@ -45,7 +45,7 @@ export const Route = createFileRoute("/cost-sheets/")({
         content:
           "Browse, filter and open fabric cost sheets with warp, weft, wastage, process and card costs frozen per version.",
       },
-      { property: "og:title", content: "Cost Sheets — WeaveOne" },
+      { property: "og:title", content: "Cost Sheets — SCKT ERP" },
       {
         property: "og:description",
         content: "Every fabric costing, versioned and attributable, in one register.",

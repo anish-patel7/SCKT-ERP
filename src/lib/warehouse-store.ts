@@ -77,9 +77,9 @@ export interface WarehouseLocationRecord {
   updatedAt: string;
 }
 
-const STORAGE_KEY_WAREHOUSES = "weaveone_warehouses_v1";
-const STORAGE_KEY_LOCATIONS = "weaveone_warehouse_locations_v1";
-const MAX_SEQ_KEY = "weaveone_wh_max_seq";
+const STORAGE_KEY_WAREHOUSES = "sckt_warehouses_v1";
+const STORAGE_KEY_LOCATIONS = "sckt_warehouse_locations_v1";
+const MAX_SEQ_KEY = "sckt_wh_max_seq";
 
 // Seed Warehouses
 const SEED_WAREHOUSES: WarehouseRecord[] = [
@@ -99,7 +99,7 @@ const SEED_WAREHOUSES: WarehouseRecord[] = [
     contactPerson: "Rajesh Shah",
     mobile: "9825101010",
     phone: "0261-2345678",
-    email: "wh.main@weaveone.com",
+    email: "wh.main@sckt.com",
     remarks: "Primary factory raw material and operational storage hub.",
     status: "Active",
     createdAt: "2026-01-10T08:00:00Z",
@@ -121,7 +121,7 @@ const SEED_WAREHOUSES: WarehouseRecord[] = [
     contactPerson: "Kishore Patel",
     mobile: "9825202020",
     phone: "0261-2345679",
-    email: "yarn.store@weaveone.com",
+    email: "yarn.store@sckt.com",
     remarks: "Temperature-controlled yarn package and cone storage.",
     status: "Active",
     createdAt: "2026-01-15T09:30:00Z",
@@ -143,7 +143,7 @@ const SEED_WAREHOUSES: WarehouseRecord[] = [
     contactPerson: "Ramesh Varma",
     mobile: "9825303030",
     phone: "0261-2345680",
-    email: "grey.store@weaveone.com",
+    email: "grey.store@sckt.com",
     remarks: "Storage for loom-state grey fabric rolls prior to processing.",
     status: "Active",
     createdAt: "2026-02-01T11:00:00Z",
@@ -165,7 +165,7 @@ const SEED_WAREHOUSES: WarehouseRecord[] = [
     contactPerson: "Mukesh Mehta",
     mobile: "9825404040",
     phone: "0261-2345681",
-    email: "fg.store@weaveone.com",
+    email: "fg.store@sckt.com",
     remarks: "Central finished goods dispatch and packing facility.",
     status: "Active",
     createdAt: "2026-02-15T14:00:00Z",

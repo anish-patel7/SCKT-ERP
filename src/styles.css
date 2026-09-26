@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * WeaveOne design system — dense enterprise ERP.
+ * SCKT design system — dense enterprise ERP.
  * Ink/steel neutrals, deep teal primary, amber accent for overrides & warnings.
  * All colours are oklch semantic tokens. Never hardcode colours in components.
  */

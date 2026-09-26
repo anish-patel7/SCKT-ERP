@@ -1,4 +1,4 @@
-# WeaveOne Textile ERP — Design & Costing Platform
+# SCKT Textile ERP — Design & Costing Platform
 
 A comprehensive textile fabric costing and design management web application.
 
