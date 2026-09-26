@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { rolesService, type RoleUpdate } from "@/services/roles";
 import { accessService } from "@/services/access";
 import { invalidateAccess } from "@/hooks/usePermissions";
@@ -23,30 +28,6 @@ export function useAccessOverview() {
     queryKey: ["access-overview"],
     queryFn: () => accessService.getAccessOverview(),
     staleTime: 30 * 1000,
-  });
-}
-
-export function useSetPrimaryRole() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ userId, roleId }: { userId: string; roleId: string }) =>
-      rolesService.setPrimaryRole(userId, roleId),
-    onSuccess: ({ profileMirrored }, { userId }) => {
-      for (const queryKey of ROLE_KEYS) void queryClient.invalidateQueries({ queryKey });
-      invalidateAccess(queryClient);
-      void queryClient.invalidateQueries({ queryKey: ["user-roles", userId] });
-      void queryClient.invalidateQueries({ queryKey: ["users"] });
-      invalidateAccess(queryClient);
-      toast.success(
-        profileMirrored
-          ? "Primary role updated"
-          : "Primary role updated (custom roles cannot be mirrored to the profile base role)",
-      );
-    },
-    onError: (error) => {
-      invalidateAccess(queryClient);
-      toast.error(errorMessage(error, "Failed to change primary role"));
-    },
   });
 }
 
@@ -126,27 +107,42 @@ export function useCreateRole() {
       roleCode: string;
       description?: string;
       isActive?: boolean;
-    }) => rolesService.createRole(roleName, roleCode, description, isActive ?? true),
+    }) =>
+      rolesService.createRole(
+        roleName,
+        roleCode,
+        description,
+        isActive ?? true,
+      ),
     onSuccess: () => {
-      for (const queryKey of ROLE_KEYS) void queryClient.invalidateQueries({ queryKey });
+      for (const queryKey of ROLE_KEYS)
+        void queryClient.invalidateQueries({ queryKey });
       invalidateAccess(queryClient);
       toast.success("Role created successfully");
     },
-    onError: (error) => toast.error(errorMessage(error, "Failed to create role")),
+    onError: (error) =>
+      toast.error(errorMessage(error, "Failed to create role")),
   });
 }
 
 export function useUpdateRole() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ roleId, updates }: { roleId: string; updates: RoleUpdate }) =>
-      rolesService.updateRole(roleId, updates),
+    mutationFn: ({
+      roleId,
+      updates,
+    }: {
+      roleId: string;
+      updates: RoleUpdate;
+    }) => rolesService.updateRole(roleId, updates),
     onSuccess: () => {
-      for (const queryKey of ROLE_KEYS) void queryClient.invalidateQueries({ queryKey });
+      for (const queryKey of ROLE_KEYS)
+        void queryClient.invalidateQueries({ queryKey });
       invalidateAccess(queryClient);
       toast.success("Role updated successfully");
     },
-    onError: (error) => toast.error(errorMessage(error, "Failed to update role")),
+    onError: (error) =>
+      toast.error(errorMessage(error, "Failed to update role")),
   });
 }
 
@@ -156,20 +152,79 @@ export function useSetRoleActive() {
     mutationFn: ({ roleId, isActive }: { roleId: string; isActive: boolean }) =>
       rolesService.setRoleActive(roleId, isActive),
     onSuccess: (_, { isActive }) => {
-      for (const queryKey of ROLE_KEYS) void queryClient.invalidateQueries({ queryKey });
+      for (const queryKey of ROLE_KEYS)
+        void queryClient.invalidateQueries({ queryKey });
       invalidateAccess(queryClient);
-      void queryClient.invalidateQueries({ queryKey: ["user-effective-permissions"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-permission"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["user-effective-permissions"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["current-user-permission"],
+      });
       toast.success(isActive ? "Role reactivated" : "Role deactivated");
     },
-    onError: (error) => toast.error(errorMessage(error, "Failed to update role status")),
+    onError: (error) =>
+      toast.error(errorMessage(error, "Failed to update role status")),
+  });
+}
+
+/** Readable message for a failed user-role change; never shows raw database errors. */
+function roleAssignmentMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : "";
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String(error.code ?? "")
+      : "";
+  if (/last active Administrator/i.test(message)) {
+    return "You cannot remove the last Administrator";
+  }
+  if (
+    code === "42501" ||
+    /row-level security|not allowed|permission denied/i.test(message)
+  ) {
+    return "You are not authorized to change role assignments";
+  }
+  return "Unable to update role assignment";
+}
+
+/** Refresh users, assignments, role counts and permission-derived state (incl. own sidebar). */
+function invalidateRoleAssignments(
+  queryClient: QueryClient,
+  userId: string,
+): void {
+  for (const queryKey of ROLE_KEYS)
+    void queryClient.invalidateQueries({ queryKey });
+  void queryClient.invalidateQueries({ queryKey: ["user-roles", userId] });
+  void queryClient.invalidateQueries({ queryKey: ["users"] });
+  void queryClient.invalidateQueries({
+    queryKey: ["user-effective-permissions"],
+  });
+  void queryClient.invalidateQueries({ queryKey: ["current-user-permission"] });
+  invalidateAccess(queryClient);
+}
+
+function useRoleAssignmentMutation<V extends { userId: string }, R>(
+  mutationFn: (variables: V) => Promise<R>,
+  successMessage: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (_, { userId }) => {
+      invalidateRoleAssignments(queryClient, userId);
+      toast.success(successMessage);
+    },
+    onError: (error, { userId }) => {
+      console.error("Role assignment failed:", error);
+      invalidateRoleAssignments(queryClient, userId);
+      toast.error(roleAssignmentMessage(error));
+    },
   });
 }
 
 export function useAssignRoleToUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
+  return useRoleAssignmentMutation(
+    ({
       userId,
       roleId,
       isPrimary,
@@ -178,35 +233,23 @@ export function useAssignRoleToUser() {
       roleId: string;
       isPrimary?: boolean;
     }) => rolesService.assignRoleToUser(userId, roleId, isPrimary),
-    onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ["user-roles", variables.userId] });
-      void queryClient.invalidateQueries({ queryKey: ["users"] });
-      void queryClient.invalidateQueries({ queryKey: ["user-effective-permissions"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-permission"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-is-admin"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-role-codes"] });
-      invalidateAccess(queryClient);
-      toast.success("Role assigned");
-    },
-    onError: (error) => toast.error(errorMessage(error, "Failed to assign role")),
-  });
+    "Role assigned successfully",
+  );
 }
 
 export function useRemoveRoleFromUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ userId, roleId }: { userId: string; roleId: string }) =>
+  return useRoleAssignmentMutation(
+    ({ userId, roleId }: { userId: string; roleId: string }) =>
       rolesService.removeRoleFromUser(userId, roleId),
-    onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ["user-roles", variables.userId] });
-      void queryClient.invalidateQueries({ queryKey: ["users"] });
-      void queryClient.invalidateQueries({ queryKey: ["user-effective-permissions"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-permission"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-is-admin"] });
-      void queryClient.invalidateQueries({ queryKey: ["current-user-role-codes"] });
-      invalidateAccess(queryClient);
-      toast.success("Role removed");
-    },
-    onError: (error) => toast.error(errorMessage(error, "Failed to remove role")),
-  });
+    "Role removed successfully",
+  );
+}
+
+/** Marks the role primary in user_roles_mapping (assigning it if needed); others become non-primary. */
+export function useSetPrimaryRole() {
+  return useRoleAssignmentMutation(
+    ({ userId, roleId }: { userId: string; roleId: string }) =>
+      rolesService.setPrimaryRole(userId, roleId),
+    "Primary role updated",
+  );
 }
