@@ -13,6 +13,7 @@ import {
 import { SidebarAccordionNav } from "@/components/sidebar-accordion-nav";
 import { NAV } from "@/lib/nav";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,14 @@ export function AppShell({
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isMobile = useIsMobile();
+  // On phones the full sidebar would leave the page only ~150px wide: start collapsed to the
+  // icon rail, open it as an overlay, and close it again after navigating.
+  const overlayOpen = isMobile && !collapsed;
+
+  useEffect(() => {
+    if (isMobile) setCollapsed(true);
+  }, [isMobile, pathname]);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -49,9 +58,20 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen bg-background">
+      {overlayOpen && (
+        <>
+          <div className="w-16 shrink-0" aria-hidden />
+          <div
+            className="fixed inset-0 z-30 bg-black/40"
+            aria-hidden
+            onClick={() => setCollapsed(true)}
+          />
+        </>
+      )}
       <aside
         className={cn(
-          "sticky top-0 flex h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width]",
+          "top-0 flex h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width]",
+          overlayOpen ? "fixed left-0 z-40" : "sticky",
           collapsed ? "w-16" : "w-[236px]",
         )}
       >
