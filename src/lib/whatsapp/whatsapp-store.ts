@@ -1,4 +1,4 @@
-// WeaveOne WhatsApp Bot Store & Audit Engine (Section 22 & 28 of Spec)
+// SCKT WhatsApp Bot Store & Audit Engine (Section 22 & 28 of Spec)
 import type {
   AuditLogEntry,
   CommandRequest,
@@ -22,7 +22,7 @@ const SEED_USERS: WhatsAppUser[] = [
   {
     id: "usr-001",
     phone_number: "+919876543210",
-    display_name: "WeaveOne Admin (admin@weaveone.com)",
+    display_name: "SCKT Admin (admin@sckt.com)",
     weaveone_user_id: "usr-admin-01",
     role: "admin",
     is_active: true,
@@ -31,7 +31,7 @@ const SEED_USERS: WhatsAppUser[] = [
   {
     id: "usr-002",
     phone_number: "+919825012345",
-    display_name: "Standard User (user@weaveone.com)",
+    display_name: "Standard User (user@sckt.com)",
     weaveone_user_id: "usr-user-02",
     role: "sales",
     is_active: true,
@@ -167,7 +167,7 @@ export function saveWhatsAppStore(data: WhatsAppData): void {
  * 1. Authenticates phone number against authorized users.
  * 2. Parses command deterministically (NO AI).
  * 3. Enforces RBAC permissions.
- * 4. Executes WeaveOne business query.
+ * 4. Executes SCKT business query.
  * 5. Formats response text & WhatsApp UI elements.
  * 6. Records an audit log entry.
  */

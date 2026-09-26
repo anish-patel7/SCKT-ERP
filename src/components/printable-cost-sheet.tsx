@@ -354,7 +354,7 @@ export function PrintableCostSheet({ sheet, onBack }: PrintableCostSheetProps) {
           <div>
             <div className="h-10 border-b border-dashed border-border"></div>
             <p className="mt-1 font-semibold text-foreground">Authorized Signature</p>
-            <p>WeaveOne Management</p>
+            <p>SCKT Management</p>
           </div>
         </div>
       </div>

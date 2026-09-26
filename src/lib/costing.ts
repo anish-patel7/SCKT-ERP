@@ -1,5 +1,5 @@
 /**
- * WeaveOne exact costing engine (M10).
+ * SCKT exact costing engine (M10).
  * Rounding order is load-bearing:
  *  - warp/weft line costs round to 2dp BEFORE summing
  *  - wastage cost rounds to 2dp

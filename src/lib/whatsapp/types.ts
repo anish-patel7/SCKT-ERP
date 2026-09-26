@@ -1,4 +1,4 @@
-// WeaveOne WhatsApp Business Bot Architecture & Type Definitions (Rule-Based Non-AI)
+// SCKT WhatsApp Business Bot Architecture & Type Definitions (Rule-Based Non-AI)
 
 export type UserRole =
   | "admin"
