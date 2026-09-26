@@ -262,7 +262,8 @@ function UsersPage() {
                           Permissions
                         </TableHead>
                         <TableHead className="h-8">Last Login</TableHead>
-                        <TableHead className="h-8 text-right">
+                        {/* Pinned so Manage Roles stays visible when the table scrolls sideways. */}
+                        <TableHead className="sticky right-0 z-10 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.25)] h-8 bg-muted text-right">
                           Actions
                         </TableHead>
                       </TableRow>
@@ -302,7 +303,7 @@ function UsersPage() {
                             <TableCell className="py-2 text-muted-foreground">
                               {formatDate(user.last_login)}
                             </TableCell>
-                            <TableCell className="py-2">
+                            <TableCell className="sticky right-0 z-10 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.25)] bg-background py-2">
                               {renderActions(user)}
                             </TableCell>
                           </TableRow>
