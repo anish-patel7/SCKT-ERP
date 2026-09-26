@@ -14,6 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { requireRouteAccess } from "@/lib/route-guards";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { migrateLegacyStorageKeys } from "@/lib/legacy-storage-migration";
+
+// Runs once on load in the browser, before any page reads saved data.
+migrateLegacyStorageKeys();
 
 function NotFoundComponent() {
   return (
@@ -43,7 +47,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   const handleResetDemo = () => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("weaveone_demo_user", "true");
+      localStorage.setItem("sckt_demo_user", "true");
       window.location.href = "/";
     }
   };

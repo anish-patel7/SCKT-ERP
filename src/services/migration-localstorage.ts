@@ -100,7 +100,7 @@ export const localStorageMigrationService = {
     onProgress?: (progress: MigrationProgress) => void,
   ): Promise<number> {
     try {
-      const storedJson = localStorage.getItem("weaveone_materials_v1");
+      const storedJson = localStorage.getItem("sckt_materials_v1");
       if (!storedJson) {
         onProgress?.({
           status: "completed",
@@ -185,7 +185,7 @@ export const localStorageMigrationService = {
     onProgress?: (progress: MigrationProgress) => void,
   ): Promise<number> {
     try {
-      const storedJson = localStorage.getItem("weaveone_designs_v1");
+      const storedJson = localStorage.getItem("sckt_designs_v1");
       if (!storedJson) {
         onProgress?.({
           status: "completed",
@@ -352,12 +352,12 @@ export const localStorageMigrationService = {
     let localDesignsCount = 0;
 
     try {
-      const matsJson = localStorage.getItem("weaveone_materials_v1");
+      const matsJson = localStorage.getItem("sckt_materials_v1");
       if (matsJson) {
         localMaterialsCount = JSON.parse(matsJson).length;
       }
 
-      const desgJson = localStorage.getItem("weaveone_designs_v1");
+      const desgJson = localStorage.getItem("sckt_designs_v1");
       if (desgJson) {
         localDesignsCount = JSON.parse(desgJson).length;
       }

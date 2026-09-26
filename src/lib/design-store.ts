@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { DesignWithDetails, FeederCrossReferenceItem, DesignFilter } from "@/types/design";
 
-const STORAGE_KEY = "weaveone_designs_v1";
-const DRAFT_KEY = "weaveone_design_draft";
+const STORAGE_KEY = "sckt_designs_v1";
+const DRAFT_KEY = "sckt_design_draft";
 
 const SEED_DESIGNS: DesignWithDetails[] = [
   {

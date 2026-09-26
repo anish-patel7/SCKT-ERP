@@ -144,7 +144,7 @@ function WhatsAppAdminPage() {
       id: uid("usr"),
       phone_number: userForm.phone_number.trim(),
       display_name: userForm.display_name.trim(),
-      weaveone_user_id: uid("u"),
+      sckt_user_id: uid("u"),
       role: userForm.role,
       is_active: true,
       registered_at: new Date().toISOString(),

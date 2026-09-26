@@ -77,9 +77,9 @@ export interface WarehouseLocationRecord {
   updatedAt: string;
 }
 
-const STORAGE_KEY_WAREHOUSES = "weaveone_warehouses_v1";
-const STORAGE_KEY_LOCATIONS = "weaveone_warehouse_locations_v1";
-const MAX_SEQ_KEY = "weaveone_wh_max_seq";
+const STORAGE_KEY_WAREHOUSES = "sckt_warehouses_v1";
+const STORAGE_KEY_LOCATIONS = "sckt_warehouse_locations_v1";
+const MAX_SEQ_KEY = "sckt_wh_max_seq";
 
 // Seed Warehouses
 const SEED_WAREHOUSES: WarehouseRecord[] = [

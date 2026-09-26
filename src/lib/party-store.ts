@@ -88,8 +88,8 @@ export interface SubPartyRecord {
   updatedBy?: string | undefined;
 }
 
-const STORAGE_KEY_PARTIES = "weaveone_parties_v1";
-const STORAGE_KEY_SUB_PARTIES = "weaveone_sub_parties_v1";
+const STORAGE_KEY_PARTIES = "sckt_parties_v1";
+const STORAGE_KEY_SUB_PARTIES = "sckt_sub_parties_v1";
 
 // Seed Parties Across Categories
 export const SEED_PARTIES: PartyRecord[] = [

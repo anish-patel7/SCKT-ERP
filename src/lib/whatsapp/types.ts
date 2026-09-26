@@ -20,7 +20,7 @@ export interface WhatsAppUser {
   id: string;
   phone_number: string; // e.g. "+919876543210"
   display_name: string;
-  weaveone_user_id: string;
+  sckt_user_id: string;
   role: UserRole;
   is_active: boolean;
   registered_at: string;

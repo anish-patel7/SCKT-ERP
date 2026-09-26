@@ -52,7 +52,7 @@ export interface AnalyticsData {
   aiSuggestions: AiSuggestion[];
 }
 
-const STORAGE_KEY = "weaveone_analytics_v1";
+const STORAGE_KEY = "sckt_analytics_v1";
 
 /**
  * Calculates Shed-wide live efficiency while enforcing BR-157:

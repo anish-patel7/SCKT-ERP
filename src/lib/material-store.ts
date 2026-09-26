@@ -12,8 +12,8 @@ export interface YarnMaterial {
   updatedAt: string;
 }
 
-const STORAGE_KEY = "weaveone_materials_v1";
-const MAX_CODE_SEQ_KEY = "weaveone_yarn_max_code_seq";
+const STORAGE_KEY = "sckt_materials_v1";
+const MAX_CODE_SEQ_KEY = "sckt_yarn_max_code_seq";
 
 export const SEED_YARN_MATERIALS: YarnMaterial[] = [
   {
@@ -487,7 +487,7 @@ export function isYarnInUse(
 
   // Check Cost Sheets
   try {
-    const costSheetsStr = localStorage.getItem("weaveone_cost_sheets_v1");
+    const costSheetsStr = localStorage.getItem("sckt_cost_sheets_v1");
     if (costSheetsStr) {
       const sheets = JSON.parse(costSheetsStr);
       for (const sheet of sheets) {
@@ -514,7 +514,7 @@ export function isYarnInUse(
 
   // Check Yarn Inventory / Store
   try {
-    const inventoryStr = localStorage.getItem("weaveone_yarn_inventory_v1");
+    const inventoryStr = localStorage.getItem("sckt_yarn_inventory_v1");
     if (inventoryStr) {
       const items = JSON.parse(inventoryStr);
       if (Array.isArray(items)) {

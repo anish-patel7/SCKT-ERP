@@ -35,7 +35,7 @@ export interface CostSheetFull {
   charges: ChargeLine[];
 }
 
-const STORAGE_KEY = "weaveone_cost_sheets_v1";
+const STORAGE_KEY = "sckt_cost_sheets_v1";
 
 export const ACCEPTANCE_TEST_SAMPLE: CostSheetFull = {
   header: {

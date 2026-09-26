@@ -589,10 +589,10 @@ const INITIAL_AUDITS: UserAuditLog[] = [
   },
 ];
 
-const STORAGE_USERS = "weaveone_users_v1";
-const STORAGE_ROLES = "weaveone_roles_v1";
-const STORAGE_SESSIONS = "weaveone_sessions_v1";
-const STORAGE_AUDITS = "weaveone_audits_v1";
+const STORAGE_USERS = "sckt_users_v1";
+const STORAGE_ROLES = "sckt_roles_v1";
+const STORAGE_SESSIONS = "sckt_sessions_v1";
+const STORAGE_AUDITS = "sckt_audits_v1";
 
 function loadStorage<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
