@@ -253,3 +253,53 @@ export function useSetPrimaryRole() {
     "Primary role updated",
   );
 }
+
+export type FallbackAssignment = {
+  userId: string;
+  roleId: string;
+  label: string;
+};
+
+/**
+ * Turns each user's profile fallback role into an explicit primary user_roles_mapping row,
+ * one user at a time through the same service (and audit log) as Manage Roles.
+ */
+export function useAssignFallbackRolesExplicitly() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (items: FallbackAssignment[]) => {
+      const failed: { label: string; error: unknown }[] = [];
+      for (const item of items) {
+        try {
+          await rolesService.setPrimaryRole(item.userId, item.roleId);
+        } catch (error) {
+          console.error(
+            `Explicit role assignment failed for ${item.label}:`,
+            error,
+          );
+          failed.push({ label: item.label, error });
+        }
+      }
+      return { total: items.length, failed };
+    },
+    onSuccess: ({ total, failed }, items) => {
+      for (const item of items)
+        invalidateRoleAssignments(queryClient, item.userId);
+      const done = total - failed.length;
+      if (failed.length === 0) {
+        toast.success(
+          `Roles assigned explicitly to ${done} user${done === 1 ? "" : "s"}`,
+        );
+      } else {
+        toast.error(
+          `Assigned ${done} of ${total}. Failed: ${failed.map((f) => f.label).join(", ")} — ${roleAssignmentMessage(failed[0]?.error)}`,
+        );
+      }
+    },
+    onError: (error, items) => {
+      for (const item of items)
+        invalidateRoleAssignments(queryClient, item.userId);
+      toast.error(roleAssignmentMessage(error));
+    },
+  });
+}

@@ -7,7 +7,11 @@ import {
   useApproveUser,
   useRejectUser,
 } from "@/hooks/useUsersManagement";
-import { useAccessOverview } from "@/hooks/useRolesManagement";
+import {
+  useAccessOverview,
+  useAssignFallbackRolesExplicitly,
+  type FallbackAssignment,
+} from "@/hooks/useRolesManagement";
 import { usePermissions } from "@/hooks/usePermissions";
 import { requireAuth } from "@/lib/route-guards";
 import {
@@ -47,6 +51,7 @@ import {
   Loader2,
   Info,
   KeyRound,
+  AlertTriangle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/system/users")({
@@ -114,6 +119,21 @@ function UsersPage() {
   const accessUser = users.find((u) => u.id === accessUserId) ?? null;
 
   const canManageRoles = usePermissions().can(MANAGE_ROLES_PERMISSION);
+  const assignFallbacks = useAssignFallbackRolesExplicitly();
+
+  // Users whose access comes only from profiles.primary_role_id (no user_roles_mapping rows).
+  const fallbackAssignments: FallbackAssignment[] = users.flatMap((u) => {
+    const roles = rolesFor(u.id);
+    return roles?.fallback && roles.primary
+      ? [
+          {
+            userId: u.id,
+            roleId: roles.primary.id,
+            label: u.email ?? u.full_name ?? u.id,
+          },
+        ]
+      : [];
+  });
 
   const rowBusy = (userId: string) =>
     (updateStatus.isPending && updateStatus.variables?.userId === userId) ||
@@ -162,6 +182,46 @@ function UsersPage() {
             server-side Supabase Admin path).
           </p>
         </div>
+
+        {canManageRoles && fallbackAssignments.length > 0 && (
+          <div className="flex flex-col gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 sm:flex-row sm:items-center dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+            <AlertTriangle className="size-4 shrink-0" />
+            <p className="flex-1">
+              {fallbackAssignments.length} user
+              {fallbackAssignments.length === 1 ? " gets" : "s get"} access only
+              from the profile fallback role, with no explicit role assignment.
+              Assigning explicitly keeps each user&apos;s current role and
+              access unchanged.
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 shrink-0 text-xs"
+              disabled={assignFallbacks.isPending}
+              onClick={() => {
+                if (
+                  confirm(
+                    `Assign the current role explicitly (as primary) to ${fallbackAssignments.length} user(s)?\n\n` +
+                      fallbackAssignments
+                        .map((a) => {
+                          const role =
+                            rolesFor(a.userId)?.primary?.role_name ?? "";
+                          return `• ${a.label} → ${role}`;
+                        })
+                        .join("\n"),
+                  )
+                ) {
+                  assignFallbacks.mutate(fallbackAssignments);
+                }
+              }}
+            >
+              {assignFallbacks.isPending && (
+                <Loader2 className="size-3 animate-spin" />
+              )}
+              Assign roles explicitly ({fallbackAssignments.length})
+            </Button>
+          </div>
+        )}
 
         {overview && overview.unavailableSources.length > 0 && (
           <p className="text-xs text-amber-700">
