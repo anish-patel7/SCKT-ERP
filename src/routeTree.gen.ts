@@ -47,6 +47,8 @@ import { Route as SystemRolesRouteImport } from './routes/system.roles'
 import { Route as SystemSettingsRouteImport } from './routes/system.settings'
 import { Route as SystemUsersRouteImport } from './routes/system.users'
 import { Route as SystemWhatsappRouteImport } from './routes/system.whatsapp'
+import { Route as ProductionRapierSplatRouteImport } from './routes/production.rapier.$'
+import { Route as ProductionWarpingSplatRouteImport } from './routes/production.warping.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -238,6 +240,16 @@ const SystemWhatsappRoute = SystemWhatsappRouteImport.update({
   path: '/system/whatsapp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductionRapierSplatRoute = ProductionRapierSplatRouteImport.update({
+  id: '/production/rapier/$',
+  path: '/production/rapier/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductionWarpingSplatRoute = ProductionWarpingSplatRouteImport.update({
+  id: '/production/warping/$',
+  path: '/production/warping/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -278,6 +290,8 @@ export interface FileRoutesByFullPath {
   '/system/whatsapp': typeof SystemWhatsappRoute
   '/cost-sheets/': typeof CostSheetsIndexRoute
   '/system/': typeof SystemIndexRoute
+  '/production/rapier/$': typeof ProductionRapierSplatRoute
+  '/production/warping/$': typeof ProductionWarpingSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -318,6 +332,8 @@ export interface FileRoutesByTo {
   '/system/whatsapp': typeof SystemWhatsappRoute
   '/cost-sheets': typeof CostSheetsIndexRoute
   '/system': typeof SystemIndexRoute
+  '/production/rapier/$': typeof ProductionRapierSplatRoute
+  '/production/warping/$': typeof ProductionWarpingSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -359,6 +375,8 @@ export interface FileRoutesById {
   '/system/whatsapp': typeof SystemWhatsappRoute
   '/cost-sheets/': typeof CostSheetsIndexRoute
   '/system/': typeof SystemIndexRoute
+  '/production/rapier/$': typeof ProductionRapierSplatRoute
+  '/production/warping/$': typeof ProductionWarpingSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -401,6 +419,8 @@ export interface FileRouteTypes {
     | '/system/whatsapp'
     | '/cost-sheets/'
     | '/system/'
+    | '/production/rapier/$'
+    | '/production/warping/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -441,6 +461,8 @@ export interface FileRouteTypes {
     | '/system/whatsapp'
     | '/cost-sheets'
     | '/system'
+    | '/production/rapier/$'
+    | '/production/warping/$'
   id:
     | '__root__'
     | '/'
@@ -481,6 +503,8 @@ export interface FileRouteTypes {
     | '/system/whatsapp'
     | '/cost-sheets/'
     | '/system/'
+    | '/production/rapier/$'
+    | '/production/warping/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -522,6 +546,8 @@ export interface RootRouteChildren {
   SystemWhatsappRoute: typeof SystemWhatsappRoute
   CostSheetsIndexRoute: typeof CostSheetsIndexRoute
   SystemIndexRoute: typeof SystemIndexRoute
+  ProductionRapierSplatRoute: typeof ProductionRapierSplatRoute
+  ProductionWarpingSplatRoute: typeof ProductionWarpingSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -792,6 +818,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SystemWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/production/rapier/$': {
+      id: '/production/rapier/$'
+      path: '/production/rapier/$'
+      fullPath: '/production/rapier/$'
+      preLoaderRoute: typeof ProductionRapierSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/production/warping/$': {
+      id: '/production/warping/$'
+      path: '/production/warping/$'
+      fullPath: '/production/warping/$'
+      preLoaderRoute: typeof ProductionWarpingSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -834,6 +874,8 @@ const rootRouteChildren: RootRouteChildren = {
   SystemWhatsappRoute: SystemWhatsappRoute,
   CostSheetsIndexRoute: CostSheetsIndexRoute,
   SystemIndexRoute: SystemIndexRoute,
+  ProductionRapierSplatRoute: ProductionRapierSplatRoute,
+  ProductionWarpingSplatRoute: ProductionWarpingSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
