@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usersService, type ProfileStatus, type UserProfileUpdate } from "@/services/users";
+import type { CreateUserInput } from "@/lib/validators/admin-users";
 import { toast } from "sonner";
 import { invalidateAccess } from "@/hooks/usePermissions";
 
@@ -66,6 +67,31 @@ export function useUpdateUserStatus() {
       toast.success("User status updated");
     },
     onError: (error) => toast.error(errorMessage(error, "Failed to update user status")),
+  });
+}
+
+/** Errors are left to the caller so the form can show them next to the field. */
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateUserInput) => usersService.createUser(input),
+    onSuccess: (user) => {
+      void queryClient.invalidateQueries({ queryKey: ["users"] });
+      invalidateAccess(queryClient);
+      toast.success(`User ${user.email} created`);
+    },
+  });
+}
+
+export function useChangeOwnPassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (password: string) => usersService.changeOwnPassword(password),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      toast.success("Password changed");
+    },
+    onError: (error) => toast.error(errorMessage(error, "Failed to change password")),
   });
 }
 

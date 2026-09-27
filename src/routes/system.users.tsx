@@ -21,7 +21,11 @@ import {
 } from "@/services/access";
 import type { UserProfile } from "@/services/users";
 import { ManageRolesDialog } from "@/components/users/manage-roles-dialog";
+import { AddUserDialog } from "@/components/users/add-user-dialog";
 import {
+  APPROVE_USERS_PERMISSION,
+  CREATE_USERS_PERMISSION,
+  EDIT_USERS_PERMISSION,
   MANAGE_ROLES_PERMISSION,
   STATUS_BADGES,
 } from "@/components/users/constants";
@@ -52,6 +56,7 @@ import {
   Info,
   KeyRound,
   AlertTriangle,
+  UserPlus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/system/users")({
@@ -89,6 +94,7 @@ function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [accessUserId, setAccessUserId] = useState<string | null>(null);
+  const [addUserOpen, setAddUserOpen] = useState(false);
 
   const accessByUser = useMemo(() => {
     const map = new Map<string, EffectiveAccess>();
@@ -118,7 +124,11 @@ function UsersPage() {
   ).length;
   const accessUser = users.find((u) => u.id === accessUserId) ?? null;
 
-  const canManageRoles = usePermissions().can(MANAGE_ROLES_PERMISSION);
+  const { can } = usePermissions();
+  const canManageRoles = can(MANAGE_ROLES_PERMISSION);
+  const canEditUsers = can(EDIT_USERS_PERMISSION);
+  const canApproveUsers = can(APPROVE_USERS_PERMISSION);
+  const canCreateUsers = can(CREATE_USERS_PERMISSION);
   const assignFallbacks = useAssignFallbackRolesExplicitly();
 
   // Users whose access comes only from profiles.primary_role_id (no user_roles_mapping rows).
@@ -178,9 +188,18 @@ function UsersPage() {
             >
               Roles / Access Groups
             </Link>
-            . New accounts cannot be created from the browser (requires a secure
-            server-side Supabase Admin path).
+            . Accounts are provisioned by an administrator with Add User; the new user
+            must set their own password at first sign-in.
           </p>
+          {canCreateUsers && (
+            <Button
+              size="sm"
+              className="ml-auto h-8 shrink-0 gap-1 text-xs"
+              onClick={() => setAddUserOpen(true)}
+            >
+              <UserPlus className="size-3.5" /> Add User
+            </Button>
+          )}
         </div>
 
         {canManageRoles && fallbackAssignments.length > 0 && (
@@ -377,6 +396,10 @@ function UsersPage() {
           </CardContent>
         </Card>
 
+        {canCreateUsers && (
+          <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} />
+        )}
+
         <ManageRolesDialog
           user={accessUser}
           overview={overview ?? null}
@@ -415,7 +438,7 @@ function UsersPage() {
           <KeyRound className="size-3.5" />
           {canManageRoles ? "Manage Roles" : "View Access"}
         </Button>
-        {canManageRoles && isPending && (
+        {canApproveUsers && isPending && (
           <>
             <Button
               variant="ghost"
@@ -443,7 +466,7 @@ function UsersPage() {
             </Button>
           </>
         )}
-        {canManageRoles && !isPending && (
+        {canEditUsers && !isPending && (
           <Button
             variant="ghost"
             size="sm"

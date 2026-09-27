@@ -60,11 +60,13 @@ Server-only configuration is separate:
 | --- | --- |
 | `SUPABASE_URL` | Server client URL; shared client can fall back to its Vite counterpart. |
 | `SUPABASE_PUBLISHABLE_KEY` | Server public client; shared client can fall back to its Vite counterpart. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional administration helper in `client.server.ts`; no current route imports it. Not required for the current V1 route flow. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Required for System → Users & Roles → **Add User**. Used only inside the `createUserFn` server function (`src/server/admin-users.server.ts`) to call the Supabase Auth Admin API. |
 
-The auth middleware requires the first two server variables if wired into a
-handler; current routes do not import it. Configure server URL and publishable
-key counterparts for the server runtime. Never prefix a service-role key or
+`createUserFn` also requires `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`: its auth
+middleware verifies the caller's session and checks `user_management:create` before the
+service-role client is used. Without the service-role key every other screen still works;
+Add User reports the missing variable. Configure server URL and publishable key
+counterparts for the server runtime. Never prefix a service-role key or
 other secret with `VITE_`, put it in browser code, or commit it.
 
 Locally, copy `.env.example` to `.env.local` and enter the new project's values.

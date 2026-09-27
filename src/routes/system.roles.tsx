@@ -11,6 +11,7 @@ import type { RoleDefinition } from "@/lib/validators/auth";
 import { useAccessOverview } from "@/hooks/useRolesManagement";
 import { ADMIN_ROLE_CODE, summarizeRoles } from "@/services/access";
 import { Can } from "@/components/auth";
+import { SYSTEM_PERMISSIONS } from "@/lib/access-control";
 import { Checkbox } from "@/components/ui/checkbox";
 import { requireAuth } from "@/lib/route-guards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -203,7 +204,7 @@ function RolesPage() {
             A Role / Access Group bundles permissions. Users receive the union of the permissions of
             all their active roles. The Administrator role always has full access.
           </p>
-          <Can permission="user_management:write">
+          <Can permission={SYSTEM_PERMISSIONS.rolesCreate}>
             <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2" size="sm">
               <Plus className="size-4" /> Create Role / Access Group
             </Button>
@@ -295,7 +296,7 @@ function RolesPage() {
                               <KeyRound className="size-3.5" />
                             </Link>
                           </Button>
-                          <Can permission="user_management:write">
+                          <Can permission={SYSTEM_PERMISSIONS.rolesUpdate}>
                             <Button
                               variant="ghost"
                               size="icon"

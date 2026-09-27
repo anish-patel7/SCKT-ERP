@@ -7,13 +7,15 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-function invalidateRolePermissions(queryClient: QueryClient, roleId: string) {
-  void queryClient.invalidateQueries({ queryKey: ["role-permissions", roleId] });
+/** Resolves once the role's own permission list has been refetched. */
+function invalidateRolePermissions(queryClient: QueryClient, roleId: string): Promise<void> {
+  const refetched = queryClient.invalidateQueries({ queryKey: ["role-permissions", roleId] });
   void queryClient.invalidateQueries({ queryKey: ["role-permissions-by-module", roleId] });
   void queryClient.invalidateQueries({ queryKey: ["user-effective-permissions"] });
   void queryClient.invalidateQueries({ queryKey: ["user-has-permission"] });
   void queryClient.invalidateQueries({ queryKey: ["current-user-permission"] });
   invalidateAccess(queryClient);
+  return refetched;
 }
 
 export function usePermissions() {
@@ -56,7 +58,7 @@ export function useGrantPermissionToRole() {
     mutationFn: ({ roleId, permissionId }: { roleId: string; permissionId: string }) =>
       permissionsService.grantPermissionToRole(roleId, permissionId),
     onSuccess: (_, variables) => {
-      invalidateRolePermissions(queryClient, variables.roleId);
+      void invalidateRolePermissions(queryClient, variables.roleId);
     },
     onError: (error) => toast.error(errorMessage(error, "Failed to grant permission")),
   });
@@ -68,7 +70,7 @@ export function useRevokePermissionFromRole() {
     mutationFn: ({ roleId, permissionId }: { roleId: string; permissionId: string }) =>
       permissionsService.revokePermissionFromRole(roleId, permissionId),
     onSuccess: (_, variables) => {
-      invalidateRolePermissions(queryClient, variables.roleId);
+      void invalidateRolePermissions(queryClient, variables.roleId);
     },
     onError: (error) => toast.error(errorMessage(error, "Failed to revoke permission")),
   });
@@ -79,14 +81,15 @@ export function useUpdateRolePermissions() {
   return useMutation({
     mutationFn: ({ roleId, permissionIds }: { roleId: string; permissionIds: string[] }) =>
       permissionsService.updateRolePermissions(roleId, permissionIds),
-    onSuccess: (_, variables) => {
-      invalidateRolePermissions(queryClient, variables.roleId);
-      toast.success("Permissions updated");
+    // Awaited so callers see the saved grants (not the previous ones) when mutate resolves.
+    onSuccess: async (_, variables) => {
+      await invalidateRolePermissions(queryClient, variables.roleId);
+      toast.success("Permissions updated successfully");
     },
     onError: (error, variables) => {
       // A partial save may have applied grants; reload actual backend state.
-      invalidateRolePermissions(queryClient, variables.roleId);
-      toast.error(errorMessage(error, "Failed to update permissions"));
+      void invalidateRolePermissions(queryClient, variables.roleId);
+      toast.error(errorMessage(error, "Unable to save permissions"));
     },
   });
 }

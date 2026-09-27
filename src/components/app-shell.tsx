@@ -11,6 +11,7 @@ import {
   CircleDot,
 } from "lucide-react";
 import { SidebarAccordionNav } from "@/components/sidebar-accordion-nav";
+import { PasswordChangeGate } from "@/components/auth/password-change-gate";
 import { NAV } from "@/lib/nav";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -176,6 +177,7 @@ export function AppShell({
           </div>
           {children}
         </main>
+        <PasswordChangeGate />
       </div>
     </div>
   );

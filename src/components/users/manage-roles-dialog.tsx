@@ -38,6 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  EDIT_USERS_PERMISSION,
   MANAGE_ROLES_PERMISSION,
   STATUS_BADGES,
 } from "@/components/users/constants";
@@ -84,6 +85,7 @@ export function ManageRolesDialog({
 }) {
   const { can, access: currentAccess } = usePermissions();
   const canManage = can(MANAGE_ROLES_PERMISSION);
+  const canEditUser = can(EDIT_USERS_PERMISSION);
   const { data: roleDefinitions } = useAllRoles();
   const assignRole = useAssignRoleToUser();
   const removeRole = useRemoveRoleFromUser();
@@ -475,7 +477,7 @@ export function ManageRolesDialog({
               </p>
             </section>
 
-            {canManage && (
+            {canEditUser && (
               <section className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
                 <span className="text-xs text-muted-foreground">
                   Account status is separate from role assignment.
