@@ -11,6 +11,8 @@ import {
   CircleDot,
 } from "lucide-react";
 import { SidebarAccordionNav } from "@/components/sidebar-accordion-nav";
+import { SidebarResizeHandle } from "@/components/sidebar-resize-handle";
+import { useSidebarWidth } from "@/hooks/use-sidebar-width";
 import { PasswordChangeGate } from "@/components/auth/password-change-gate";
 import { NAV } from "@/lib/nav";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +35,8 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useSidebarWidth();
+  const [resizing, setResizing] = useState(false);
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -58,7 +62,7 @@ export function AppShell({
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className={cn("flex min-h-screen bg-background", resizing && "cursor-col-resize select-none")}>
       {overlayOpen && (
         <>
           <div className="w-16 shrink-0" aria-hidden />
@@ -71,11 +75,24 @@ export function AppShell({
       )}
       <aside
         className={cn(
-          "top-0 flex h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width]",
+          "top-0 flex h-screen shrink-0 flex-col border-r border-sidebar-border bg-sidebar",
+          !resizing && "transition-[width]",
           overlayOpen ? "fixed left-0 z-40" : "sticky",
-          collapsed ? "w-16" : "w-[236px]",
+          collapsed && "w-16",
         )}
+        style={
+          collapsed
+            ? undefined
+            : { width: overlayOpen ? `min(${sidebarWidth}px, calc(100vw - 3rem))` : sidebarWidth }
+        }
       >
+        {!collapsed && !isMobile && (
+          <SidebarResizeHandle
+            width={sidebarWidth}
+            onResize={setSidebarWidth}
+            onResizingChange={setResizing}
+          />
+        )}
         <div className="flex h-11 items-center gap-2 border-b border-sidebar-border px-3">
           <img
             src="/ck-logo.png"

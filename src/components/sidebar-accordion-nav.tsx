@@ -99,7 +99,7 @@ function SidebarSection({
             open && "rotate-90",
           )}
         />
-        <span className="flex-1 truncate">{item.label}</span>
+        <span className="flex-1 break-words leading-snug">{item.label}</span>
       </button>
       {open && (
         <div className="ml-3 space-y-0.5 border-l border-sidebar-border/40 pl-2">
@@ -170,7 +170,7 @@ function SidebarLink({
     >
       <CircleDot className="size-3 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
       {!collapsed && (
-        <span className="flex-1 truncate">
+        <span className="flex-1 break-words leading-snug">
           {label}
           {phase && phase > 1 ? (
             <span className="ml-1 text-[0.625rem] font-normal text-sidebar-foreground/45">
