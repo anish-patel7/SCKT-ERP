@@ -1,7 +1,11 @@
+import { productionModuleNav } from "@/features/production/config/production-features";
+
+/** A link (`to`) or a sub-section holding further items (`children`). */
 export type NavItem = {
   label: string;
-  to: string;
+  to?: string;
   phase?: number;
+  children?: NavItem[];
 };
 
 export type NavGroup = {
@@ -47,6 +51,8 @@ export const NAV: NavGroup[] = [
       { label: "Loom Planning", to: "/production/looms" },
       { label: "Job Cards", to: "/production/job-cards" },
       { label: "Daily Production", to: "/production/daily" },
+      productionModuleNav("rapier"),
+      productionModuleNav("warping"),
     ],
   },
   {

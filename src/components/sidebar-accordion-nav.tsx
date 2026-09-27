@@ -3,6 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ChevronDown,
+  ChevronRight,
   CircleDot,
   Calculator,
   Palette,
@@ -38,6 +39,113 @@ function isItemActive(itemTo: string, currentPath: string): boolean {
   return currentPath.startsWith(itemTo + "/") || currentPath.startsWith(itemTo + "?");
 }
 
+/** True when the item is a link to the current path or a section containing one. */
+function containsActive(item: NavItem, currentPath: string): boolean {
+  if (item.to !== undefined && isItemActive(item.to, currentPath)) return true;
+  return item.children?.some((child) => containsActive(child, currentPath)) ?? false;
+}
+
+/** Keep permitted links; drop sections left without any permitted link. */
+function filterNavItems(items: NavItem[], allowed: (to: string) => boolean): NavItem[] {
+  return items.flatMap((item): NavItem[] => {
+    if (item.children) {
+      const children = filterNavItems(item.children, allowed);
+      return children.length ? [{ ...item, children }] : [];
+    }
+    return item.to !== undefined && allowed(item.to) ? [item] : [];
+  });
+}
+
+function flattenLinks(items: NavItem[]): NavItem[] {
+  return items.flatMap((item) => (item.children ? flattenLinks(item.children) : [item]));
+}
+
+/** Nested menu section (e.g. Production → Rapier Module → Daily Production Section). */
+function SidebarSection({
+  item,
+  depth,
+  pathname,
+  collapsed,
+}: {
+  item: NavItem;
+  depth: number;
+  pathname: string;
+  collapsed: boolean;
+}) {
+  const active = containsActive(item, pathname);
+  const [open, setOpen] = useState(active);
+  useEffect(() => {
+    if (active) setOpen(true);
+  }, [active]);
+  const children = item.children ?? [];
+
+  if (collapsed) {
+    return <SidebarItems items={flattenLinks(children)} depth={depth} pathname={pathname} collapsed />;
+  }
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={cn(
+          "group flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-[0.8125rem] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          active && "font-semibold text-sidebar-accent-foreground",
+        )}
+      >
+        <ChevronRight
+          className={cn(
+            "size-3 shrink-0 opacity-60 transition-transform duration-150",
+            open && "rotate-90",
+          )}
+        />
+        <span className="flex-1 truncate">{item.label}</span>
+      </button>
+      {open && (
+        <div className="ml-3 space-y-0.5 border-l border-sidebar-border/40 pl-2">
+          <SidebarItems items={children} depth={depth + 1} pathname={pathname} collapsed={false} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SidebarItems({
+  items,
+  depth,
+  pathname,
+  collapsed,
+}: {
+  items: NavItem[];
+  depth: number;
+  pathname: string;
+  collapsed: boolean;
+}) {
+  return (
+    <>
+      {items.map((item) =>
+        item.children ? (
+          <SidebarSection
+            key={`section:${item.label}`}
+            item={item}
+            depth={depth}
+            pathname={pathname}
+            collapsed={collapsed}
+          />
+        ) : item.to !== undefined ? (
+          <SidebarLink
+            key={item.to}
+            to={item.to}
+            label={item.label}
+            phase={item.phase}
+            collapsed={collapsed}
+          />
+        ) : null,
+      )}
+    </>
+  );
+}
+
 function SidebarLink({
   to,
   label,
@@ -52,6 +160,7 @@ function SidebarLink({
   return (
     <Link
       to={to}
+      title={label}
       className="group flex items-center gap-2 rounded-sm px-2.5 py-1.5 text-[0.8125rem] text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       activeProps={{
         className:
@@ -102,7 +211,7 @@ export function SidebarAccordionNav({
       return requirement === null || canAny(requirement.anyOf);
     };
     return allGroups
-      .map((group) => ({ ...group, items: group.items.filter((item) => allowed(item.to)) }))
+      .map((group) => ({ ...group, items: filterNavItems(group.items, allowed) }))
       .filter((group) => group.items.length > 0);
   }, [allGroups, canAny, accessLoading]);
 
@@ -115,7 +224,7 @@ export function SidebarAccordionNav({
     const activeGroup = groups.find(
       (group) =>
         (group.to !== undefined && isItemActive(group.to, pathname)) ||
-        group.items.some((item) => isItemActive(item.to, pathname)),
+        group.items.some((item) => containsActive(item, pathname)),
     );
     if (activeGroup) {
       setExpandedGroup(activeGroup.label);
@@ -161,7 +270,7 @@ export function SidebarAccordionNav({
       {groups.map((group) => {
         const IconComponent = GROUP_ICONS[group.label] || CircleDot;
         const isExpanded = expandedGroup === group.label;
-        const hasActiveChild = group.items.some((item) => isItemActive(item.to, pathname));
+        const hasActiveChild = group.items.some((item) => containsActive(item, pathname));
 
         return (
           <div key={group.label} className="pt-1">
@@ -210,15 +319,12 @@ export function SidebarAccordionNav({
               )}
             >
               <div className="overflow-hidden pl-3 space-y-0.5 border-l border-sidebar-border/40 ml-4 my-0.5">
-                {group.items.map((item) => (
-                  <SidebarLink
-                    key={item.to}
-                    to={item.to}
-                    label={item.label}
-                    phase={item.phase}
-                    collapsed={collapsed}
-                  />
-                ))}
+                <SidebarItems
+                  items={group.items}
+                  depth={0}
+                  pathname={pathname}
+                  collapsed={collapsed}
+                />
               </div>
             </div>
           </div>
