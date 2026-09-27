@@ -3,11 +3,28 @@ import { z } from "zod";
 import { permissionsService } from "@/services/permissions";
 import { auditService } from "@/services/audit";
 import { accessService, assertNotLastAdmin } from "@/services/access";
+import { createUserFn } from "@/services/adminUsers.functions";
+import {
+  CreateUserInputSchema,
+  type CreateUserInput,
+  type CreatedUser,
+} from "@/lib/validators/admin-users";
 
 export class UserError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "UserError";
+  }
+}
+
+/** A rejected value in a specific form field (e.g. duplicate email). */
+export class UserFieldError extends UserError {
+  constructor(
+    public readonly field: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "UserFieldError";
   }
 }
 
@@ -39,6 +56,7 @@ export const UserProfileSchema = z.object({
   approved_by: z.string().nullable().default(null),
   approved_at: Timestamp.nullable().default(null),
   last_login: Timestamp.nullable().default(null),
+  require_password_change: z.boolean().nullable().default(null),
   created_at: Timestamp,
   updated_at: Timestamp,
 });
@@ -164,6 +182,38 @@ export const usersService = {
     }
     await auditService.record("user", userId, "USER_REJECTED", "Access request rejected");
     return UserProfileSchema.parse(data);
+  },
+
+  /**
+   * Create a login for someone else (server-side, service-role Admin API). The server
+   * requires user_management:create; approval and role assignment need their own permissions.
+   */
+  async createUser(input: CreateUserInput): Promise<CreatedUser> {
+    const data = CreateUserInputSchema.parse(input);
+    const result = await createUserFn({ data });
+    if (!result.ok) {
+      if (result.code === "FORBIDDEN") throw new UnauthorizedError(result.message);
+      if (result.field) throw new UserFieldError(result.field, result.message);
+      throw new UserError(result.message);
+    }
+    return result.user;
+  },
+
+  /** Set a new password for the signed-in user and clear the forced-change flag. */
+  async changeOwnPassword(newPassword: string): Promise<void> {
+    const user = await requireSessionUser();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      throw new UserError(`Failed to change password: ${error.message}`);
+    }
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ require_password_change: false, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (profileError) {
+      throw new UserError(`Password changed, but the profile was not updated: ${profileError.message}`);
+    }
+    await auditService.record("user", user.id, "PASSWORD_CHANGED", "User set a new password");
   },
 
   async isCurrentUserAdmin(): Promise<boolean> {

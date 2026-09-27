@@ -21,6 +21,7 @@ import {
 } from "@/services/access";
 import type { UserProfile } from "@/services/users";
 import { ManageRolesDialog } from "@/components/users/manage-roles-dialog";
+import { AddUserDialog } from "@/components/users/add-user-dialog";
 import {
   APPROVE_USERS_PERMISSION,
   CREATE_USERS_PERMISSION,
@@ -93,6 +94,7 @@ function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [accessUserId, setAccessUserId] = useState<string | null>(null);
+  const [addUserOpen, setAddUserOpen] = useState(false);
 
   const accessByUser = useMemo(() => {
     const map = new Map<string, EffectiveAccess>();
@@ -186,16 +188,14 @@ function UsersPage() {
             >
               Roles / Access Groups
             </Link>
-            . New accounts cannot be created from the browser (requires a secure
-            server-side Supabase Admin path).
+            . Accounts are provisioned by an administrator with Add User; the new user
+            must set their own password at first sign-in.
           </p>
           {canCreateUsers && (
             <Button
               size="sm"
-              variant="outline"
               className="ml-auto h-8 shrink-0 gap-1 text-xs"
-              disabled
-              title="Coming soon: requires the secure server-side Admin user creation path"
+              onClick={() => setAddUserOpen(true)}
             >
               <UserPlus className="size-3.5" /> Add User
             </Button>
@@ -395,6 +395,10 @@ function UsersPage() {
             )}
           </CardContent>
         </Card>
+
+        {canCreateUsers && (
+          <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} />
+        )}
 
         <ManageRolesDialog
           user={accessUser}
