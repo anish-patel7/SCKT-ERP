@@ -2,10 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getWarpingService } from "@/features/production/warping/warping-service";
 import type {
   BeamInput,
+  BeamIssueInput,
   BeamMovementKind,
+  BeamProductionLoadingInput,
+  BeamReceiveInput,
+  EmptyBeamInwardInput,
   LoadBeamInput,
+  MaterialIssueInput,
+  MaterialReturnInput,
   MoveBeamInput,
   UnloadBeamInput,
+  YarnIssueUpdateInput,
 } from "@/features/production/warping/warping-types";
 
 /** Under the Production root key so the demo reset refreshes Warping too. */
@@ -26,6 +33,27 @@ export function useBeamMovements(kind?: BeamMovementKind) {
   });
 }
 
+export function useMaterialIssues() {
+  return useQuery({
+    queryKey: [...KEY, "material-issues"],
+    queryFn: () => getWarpingService().listMaterialIssues(),
+  });
+}
+
+export function useMaterialReturns() {
+  return useQuery({
+    queryKey: [...KEY, "material-returns"],
+    queryFn: () => getWarpingService().listMaterialReturns(),
+  });
+}
+
+export function useYarnIssueUpdates() {
+  return useQuery({
+    queryKey: [...KEY, "yarn-updates"],
+    queryFn: () => getWarpingService().listYarnIssueUpdates(),
+  });
+}
+
 function useWarpingMutation<I, R>(fn: (input: I) => Promise<R>) {
   const qc = useQueryClient();
   return useMutation({
@@ -34,11 +62,21 @@ function useWarpingMutation<I, R>(fn: (input: I) => Promise<R>) {
   });
 }
 
-export const useProduceBeam = () =>
-  useWarpingMutation((i: BeamInput) => getWarpingService().produceBeam(i));
-export const useLoadBeam = () =>
-  useWarpingMutation((i: LoadBeamInput) => getWarpingService().loadBeam(i));
-export const useUnloadBeam = () =>
-  useWarpingMutation((i: UnloadBeamInput) => getWarpingService().unloadBeam(i));
-export const useMoveBeam = () =>
-  useWarpingMutation((i: MoveBeamInput) => getWarpingService().moveBeam(i));
+const svc = () => getWarpingService();
+export const useInwardEmptyBeam = () =>
+  useWarpingMutation((i: EmptyBeamInwardInput) => svc().inwardEmptyBeam(i));
+export const useIssueBeam = () => useWarpingMutation((i: BeamIssueInput) => svc().issueBeam(i));
+export const useProduceBeam = () => useWarpingMutation((i: BeamInput) => svc().produceBeam(i));
+export const useReceiveBeam = () =>
+  useWarpingMutation((i: BeamReceiveInput) => svc().receiveBeam(i));
+export const useProduceAndLoadBeam = () =>
+  useWarpingMutation((i: BeamProductionLoadingInput) => svc().produceAndLoadBeam(i));
+export const useLoadBeam = () => useWarpingMutation((i: LoadBeamInput) => svc().loadBeam(i));
+export const useUnloadBeam = () => useWarpingMutation((i: UnloadBeamInput) => svc().unloadBeam(i));
+export const useMoveBeam = () => useWarpingMutation((i: MoveBeamInput) => svc().moveBeam(i));
+export const useIssueMaterial = () =>
+  useWarpingMutation((i: MaterialIssueInput) => svc().issueMaterial(i));
+export const useReturnMaterial = () =>
+  useWarpingMutation((i: MaterialReturnInput) => svc().returnMaterial(i));
+export const useUpdateYarnIssue = () =>
+  useWarpingMutation((i: YarnIssueUpdateInput) => svc().updateYarnIssue(i));

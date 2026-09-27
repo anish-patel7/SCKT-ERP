@@ -25,10 +25,11 @@ import { formatDate } from "@/lib/erp/formatting";
 import { cn } from "@/lib/utils";
 
 const STATUS_TONE: Record<BeamStatus, string> = {
+  EMPTY: "border-border text-muted-foreground",
+  AT_WARPING: "border-sky-500/60 text-sky-700 dark:text-sky-300",
   IN_STORE: "border-emerald-500/60 text-emerald-700 dark:text-emerald-300",
   LOADED_ON_LOOM: "border-primary/60 text-primary",
   SIZING: "border-amber-500/60 text-amber-700 dark:text-amber-300",
-  DEPLETED: "border-border text-muted-foreground",
 };
 
 export function BeamStatusBadge({ status }: { status: BeamStatus }) {

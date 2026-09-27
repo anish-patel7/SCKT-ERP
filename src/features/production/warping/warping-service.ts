@@ -14,18 +14,29 @@ class UnavailableWarpingService implements WarpingService {
   async listMovements() {
     return [];
   }
-  async produceBeam(): Promise<never> {
+  async listMaterialIssues() {
+    return [];
+  }
+  async listMaterialReturns() {
+    return [];
+  }
+  async listYarnIssueUpdates() {
+    return [];
+  }
+  private async unavailable(): Promise<never> {
     throw new WarpingUnavailableError();
   }
-  async loadBeam(): Promise<never> {
-    throw new WarpingUnavailableError();
-  }
-  async unloadBeam(): Promise<never> {
-    throw new WarpingUnavailableError();
-  }
-  async moveBeam(): Promise<never> {
-    throw new WarpingUnavailableError();
-  }
+  inwardEmptyBeam = () => this.unavailable();
+  issueBeam = () => this.unavailable();
+  produceBeam = () => this.unavailable();
+  receiveBeam = () => this.unavailable();
+  produceAndLoadBeam = () => this.unavailable();
+  loadBeam = () => this.unavailable();
+  unloadBeam = () => this.unavailable();
+  moveBeam = () => this.unavailable();
+  issueMaterial = () => this.unavailable();
+  returnMaterial = () => this.unavailable();
+  updateYarnIssue = () => this.unavailable();
 }
 
 let instance: WarpingService | null = null;

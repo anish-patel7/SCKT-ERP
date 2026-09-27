@@ -57,14 +57,8 @@ describe("production feature registry", () => {
     const warping = PRODUCTION_FEATURES.filter((f) => f.module === "warping");
     expect(rapier).toHaveLength(14);
     expect(warping).toHaveLength(10);
-    // Built from the old Beam Store functions; the other seven await their specification.
-    expect(
-      warping
-        .filter((f) => f.status === "demo")
-        .map((f) => f.slug)
-        .sort(),
-    ).toEqual(["beam-loading", "beam-production", "beam-unloading"]);
-    expect(warping.filter((f) => f.status === "spec_pending")).toHaveLength(7);
+    // Every Warping screen is built (three from the old Beam Store, seven provisional).
+    expect(warping.every((f) => f.status === "demo")).toBe(true);
     const paths = PRODUCTION_FEATURES.map(featurePath);
     expect(new Set(paths).size).toBe(paths.length);
     expect(findFeature("rapier", "job-cards/daily-production")?.label).toBe(
