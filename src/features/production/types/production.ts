@@ -65,6 +65,10 @@ type DocumentBase = {
   createdAt: string;
 };
 
+/** Planning priority, carried over from the existing Production Orders screen. */
+export const JOB_ORDER_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+export type JobOrderPriority = (typeof JOB_ORDER_PRIORITIES)[number];
+
 export type JobOrderInput = {
   date: IsoDate;
   orderPartyId: string;
@@ -75,14 +79,26 @@ export type JobOrderInput = {
   qty: number;
   rate: number;
   remark: string;
+  /** From the existing Production Orders screen. Defaults to "normal". */
+  priority?: JobOrderPriority;
+  /** Target delivery date (existing Production Orders). Empty = not set. */
+  deliveryDate?: IsoDate | "";
 };
-export type JobOrder = DocumentBase & Omit<JobOrderInput, "date" | "remark">;
+export type JobOrder = DocumentBase &
+  Omit<JobOrderInput, "date" | "remark" | "priority" | "deliveryDate"> & {
+    priority: JobOrderPriority;
+    deliveryDate: IsoDate | "";
+  };
 export type JobOrderRow = JobOrder & {
   partyName: string;
   salesOrderNo: string;
   itemName: string;
   yarnName: string;
   amount: number;
+  /** Sum of job card issued qty against this job order (preview). */
+  cardIssuedQty: number;
+  /** Sum of job card received qty (daily production + receipts) — progress preview. */
+  producedQty: number;
 };
 
 export type YarnIssueInput = {
@@ -165,12 +181,32 @@ export type JobCardAdjustmentInput = {
   reason: string;
 };
 
+/** Shifts used by the existing Daily Production screen. */
+export const PRODUCTION_SHIFTS = ["A", "B", "C"] as const;
+export type ProductionShift = (typeof PRODUCTION_SHIFTS)[number];
+
+/** Downtime reasons from the existing Daily Production screen. */
+export const DOWNTIME_REASONS = [
+  "Warp breakage",
+  "Weft change",
+  "Beam change",
+  "Power failure",
+  "Mechanical fault",
+  "Design change",
+  "No operator",
+  "Other",
+] as const;
+
 export type DailyProductionLineInput = {
   jobCardId: string;
   qty: number;
   saleRate: number;
   pickRate: number;
   rate: number;
+  /** Existing Daily Production fields (optional, informational only). */
+  yarnUsedKg?: number | null;
+  downtimeMin?: number | null;
+  downtimeReason?: string;
 };
 export type DailyProductionInput = {
   date: IsoDate;
@@ -178,6 +214,8 @@ export type DailyProductionInput = {
   unitId: string;
   receiveType: "DAILY PRODUCTION";
   remark: string;
+  /** Existing Daily Production field. Empty = not recorded. */
+  shift?: ProductionShift | "";
   lines: DailyProductionLineInput[];
 };
 export type DailyProductionLine = DailyProductionLineInput & { id: string };

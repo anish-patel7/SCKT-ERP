@@ -47,12 +47,11 @@ export const NAV: NavGroup[] = [
   {
     label: "Production",
     items: [
-      { label: "Production Orders", to: "/production/orders" },
-      { label: "Loom Planning", to: "/production/looms" },
-      { label: "Job Cards", to: "/production/job-cards" },
-      { label: "Daily Production", to: "/production/daily" },
+      // Production Orders, Job Cards and Daily Production live inside the Rapier Module
+      // (their old URLs redirect there). Loom Planning stays the one loom screen.
       productionModuleNav("rapier"),
       productionModuleNav("warping"),
+      { label: "Loom Planning", to: "/production/looms" },
     ],
   },
   {

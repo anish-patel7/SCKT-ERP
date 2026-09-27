@@ -382,13 +382,18 @@ export class ProductionDemoService implements ProductionService {
         this.requireRef("yarnId", input.yarnId, m.yarns, "yarn item");
         this.requirePositive("qty", input.qty, "Quantity");
         this.requireNonNegative("rate", input.rate, "Rate");
-        const { date, remark, ...rest } = input;
+        if (input.deliveryDate && !isIsoDate(input.deliveryDate)) {
+          fail("deliveryDate", "Enter a valid delivery date");
+        }
+        const { date, remark, priority, deliveryDate, ...rest } = input;
         return (base) =>
           s.jobOrders.push({
             ...base,
             date,
             remark,
             ...rest,
+            priority: priority ?? "normal",
+            deliveryDate: deliveryDate ?? "",
             partyOrderNo: rest.partyOrderNo.trim(),
           });
       }
@@ -475,6 +480,14 @@ export class ProductionDemoService implements ProductionService {
           ] as const) {
             this.requireNonNegative(`lines.${i}.${field}`, value, `Line ${i + 1}: ${field}`);
           }
+          for (const [field, value] of [
+            ["yarnUsedKg", line.yarnUsedKg],
+            ["downtimeMin", line.downtimeMin],
+          ] as const) {
+            if (value != null) {
+              this.requireNonNegative(`lines.${i}.${field}`, value, `Line ${i + 1}: ${field}`);
+            }
+          }
           perCard.set(card.id, sumQty([perCard.get(card.id) ?? 0, line.qty]));
         });
         for (const [cardId, qty] of perCard) {
@@ -496,7 +509,14 @@ export class ProductionDemoService implements ProductionService {
             warehouseId: input.warehouseId,
             unitId: input.unitId,
             receiveType: "DAILY PRODUCTION",
-            lines: input.lines.map((l) => ({ ...l, id: this.nextId("dpl") })),
+            shift: input.shift ?? "",
+            lines: input.lines.map((l) => ({
+              ...l,
+              yarnUsedKg: l.yarnUsedKg ?? null,
+              downtimeMin: l.downtimeMin ?? null,
+              downtimeReason: l.downtimeReason?.trim() ?? "",
+              id: this.nextId("dpl"),
+            })),
           });
       }
       case "jobCardReceipt": {
@@ -798,14 +818,21 @@ export class ProductionDemoService implements ProductionService {
 
     const byKind: { [P in ProductionKind]: () => RowOf<P>[] } = {
       jobOrder: () =>
-        s.jobOrders.map((j) => ({
-          ...clone(j),
-          partyName: n(m.parties, j.orderPartyId),
-          salesOrderNo: n(m.salesOrders, j.salesOrderId),
-          itemName: n(m.items, j.itemId),
-          yarnName: n(m.yarns, j.yarnId),
-          amount: lineAmount(j.qty, j.rate),
-        })),
+        s.jobOrders.map((j) => {
+          const cards = s.jobCards.filter((c) => c.jobOrderId === j.id);
+          return {
+            ...clone(j),
+            partyName: n(m.parties, j.orderPartyId),
+            salesOrderNo: n(m.salesOrders, j.salesOrderId),
+            itemName: n(m.items, j.itemId),
+            yarnName: n(m.yarns, j.yarnId),
+            amount: lineAmount(j.qty, j.rate),
+            cardIssuedQty: sumQty(cards.map((c) => c.issuedQty)),
+            // Progress preview only — BUSINESS RULE PENDING CONFIRMATION (units of
+            // job order qty vs job card qty are assumed to match).
+            producedQty: sumQty(cards.map((c) => this.jobCardReceived(c))),
+          };
+        }),
       yarnIssue: () =>
         s.yarnIssues.map((i) => {
           const jo = this.jobOrder(i.jobOrderId);

@@ -36,6 +36,14 @@ export const PRODUCTION_MODULE_LABELS: Record<ProductionModule, string> = {
 
 export const DAILY_PRODUCTION_GROUP = "Daily Production Section";
 
+/** Warping screens built from the old Beam Store functions (slug → description). */
+const WARPING_BUILT: Record<string, string> = {
+  "beam-production":
+    "Warped beam entry and beam register: set, warp yarn, ends, length, rack, status, QR label.",
+  "beam-loading": "Loads an in-store beam on a loom.",
+  "beam-unloading": "Takes a beam off its loom back to store, sizing or depleted.",
+};
+
 export const PRODUCTION_FEATURES: readonly ProductionFeatureDefinition[] = [
   // --- Rapier ---------------------------------------------------------------
   {
@@ -166,7 +174,10 @@ export const PRODUCTION_FEATURES: readonly ProductionFeatureDefinition[] = [
     futurePermissionResource: "production.rapier.fabric_conversion",
     description: "Stock transformation: stock out lines converted into stock in lines.",
   },
-  // --- Warping (route shells until screenshots are supplied) -----------------
+  // --- Warping ----------------------------------------------------------------
+  // Beam Production / Loading / Unload reuse the old Beam Store functions (beam entry,
+  // loom allocation, status & location, QR / thermal label). The rest are route shells
+  // until their screenshots are supplied.
   ...(
     [
       ["beam-issues", "Beam Issue Entry (Empty Beam)", "beam_issue"],
@@ -180,15 +191,18 @@ export const PRODUCTION_FEATURES: readonly ProductionFeatureDefinition[] = [
       ["beam-production-loading", "Beam Production Loading Entry", "beam_production_loading"],
       ["tfo-yarn-issue", "TFO & Beam Yarn Issue Updation", "tfo_beam_yarn_issue"],
     ] as const
-  ).map(([slug, label, resource]): ProductionFeatureDefinition => ({
-    id: `warping.${slug}`,
-    module: "warping",
-    label,
-    slug,
-    status: "spec_pending",
-    futurePermissionResource: `production.warping.${resource}`,
-    description: "Workflow specification pending.",
-  })),
+  ).map(([slug, label, resource]): ProductionFeatureDefinition => {
+    const built = WARPING_BUILT[slug];
+    return {
+      id: `warping.${slug}`,
+      module: "warping",
+      label,
+      slug,
+      status: built ? "demo" : "spec_pending",
+      futurePermissionResource: `production.warping.${resource}`,
+      description: built ?? "Workflow specification pending.",
+    };
+  }),
 ];
 
 export function featurePath(feature: ProductionFeatureDefinition): string {

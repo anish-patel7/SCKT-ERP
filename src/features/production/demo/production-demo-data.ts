@@ -18,6 +18,7 @@ import {
   DEMO_YARNS,
 } from "@/features/masters/demo/shared-master-fixtures";
 import { DEMO_ITEM_LOOKUPS } from "@/features/masters/demo/item-lookups";
+import { DEMO_BEAM_OPTIONS } from "@/features/production/warping/warping-demo-data";
 
 export const DEMO_MASTERS: ProductionMasters = {
   companies: DEMO_COMPANIES,
@@ -42,11 +43,8 @@ export const DEMO_MASTERS: ProductionMasters = {
     { id: "mc-41", code: "LOOM-41", name: "LOOM-41", unitId: "unit-2" },
     { id: "mc-07", code: "LOOM-07", name: "LOOM-07", unitId: "unit-3" },
   ],
-  beams: [
-    { id: "bm-101", code: "BM-101", name: "BM-101" },
-    { id: "bm-102", code: "BM-102", name: "BM-102" },
-    { id: "bm-205", code: "BM-205", name: "BM-205" },
-  ],
+  // One beam register: the Warping module's beams (no separate Production beam list).
+  beams: DEMO_BEAM_OPTIONS,
   // Placeholder grades until the controlled grade list is confirmed.
   grades: [
     { id: "gr-a", code: "A", name: "A Grade" },
@@ -137,6 +135,8 @@ export function demoSeeds(): Seed[] {
         qty: 300,
         rate: 42.5,
         remark: "",
+        priority: "normal",
+        deliveryDate: d(-20),
       },
     },
     {
@@ -151,6 +151,8 @@ export function demoSeeds(): Seed[] {
         qty: 500,
         rate: 38.75,
         remark: "Urgent",
+        priority: "urgent",
+        deliveryDate: d(-7),
       },
     },
     {
@@ -221,7 +223,19 @@ export function demoSeeds(): Seed[] {
         unitId: "unit-1",
         receiveType: "DAILY PRODUCTION",
         remark: "",
-        lines: [{ jobCardId: "ref:jobCard:0", qty: 30, saleRate: 0, pickRate: 0.32, rate: 38.75 }],
+        shift: "A",
+        lines: [
+          {
+            jobCardId: "ref:jobCard:0",
+            qty: 30,
+            saleRate: 0,
+            pickRate: 0.32,
+            rate: 38.75,
+            yarnUsedKg: 4.2,
+            downtimeMin: 25,
+            downtimeReason: "Beam change",
+          },
+        ],
       },
     },
     {

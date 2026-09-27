@@ -25,8 +25,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLooms, useCreateLoom, useUpdateLoomStatus } from "@/hooks/useLooms";
-import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useLooms,
+  useCreateLoom,
+  useUpdateLoomStatus,
+  useAssignJobCard,
+  useUnassignJobCard,
+} from "@/hooks/useLooms";
+import { useAllJobCards } from "@/hooks/useProduction";
+import { LoomCard } from "@/features/production/live/loom-card";
+import {
+  INACTIVE_STATUS,
+  toastError,
+  type LiveJobCard,
+  type LiveLoom,
+} from "@/features/production/live/loom-model";
 
 export const Route = createFileRoute("/production/looms")({
   beforeLoad: async () => {
@@ -52,16 +66,19 @@ export const Route = createFileRoute("/production/looms")({
   component: Page,
 });
 
-const STATUS_TONE: Record<string, string> = {
-  RUNNING: "border-primary/60 bg-primary/10",
-  IDLE: "border-border bg-card",
-  MAINTENANCE: "border-amber-500/60 bg-amber-500/10",
-  BLOCKED: "border-red-500/60 bg-red-500/10",
-  DECOMMISSIONED: "border-gray-500/60 bg-gray-500/10",
-};
-
 function Page() {
-  const { data: looms = [] } = useLooms();
+  const { data: loomData = [] } = useLooms();
+  const looms = loomData as LiveLoom[];
+  const { data: jobCardData = [] } = useAllJobCards();
+  const jobCards = jobCardData as LiveJobCard[];
+  const qc = useQueryClient();
+  const assignJobCard = useAssignJobCard();
+  const unassignJobCard = useUnassignJobCard();
+  const [filter, setFilter] = useState<"all" | "active" | "inactive">("active");
+  const inactiveCount = looms.filter((l) => l.status === INACTIVE_STATUS).length;
+  const visible = looms.filter((l) =>
+    filter === "all" ? true : (l.status === INACTIVE_STATUS) === (filter === "inactive"),
+  );
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     loom_no: "",
@@ -115,11 +132,10 @@ function Page() {
     }
   };
 
-  const running = useMemo(
-    () => looms.filter((l) => l.status === "RUNNING").length,
-    [looms]
-  );
-  const utilisation = looms.length > 0 ? Math.round((running / looms.length) * 100) : 0;
+  const running = useMemo(() => looms.filter((l) => l.status === "RUNNING").length, [looms]);
+  const activeCount = looms.length - inactiveCount;
+  // Utilisation over active looms (decommissioned looms excluded).
+  const utilisation = activeCount > 0 ? Math.round((running / activeCount) * 100) : 0;
 
   return (
     <AppShell
@@ -128,7 +144,7 @@ function Page() {
       actions={
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-[0.6875rem]">
-            Utilisation {utilisation}% · {running}/{looms.length} running
+            Utilisation {utilisation}% · {running}/{activeCount} running
           </Badge>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -200,51 +216,61 @@ function Page() {
         </div>
       }
     >
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {looms.map((l) => (
-          <Card key={l.id} className={cn("gap-2 rounded-sm border py-3", STATUS_TONE[l.status || "IDLE"])}>
-            <CardHeader className="flex flex-row items-center justify-between px-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <span className="font-mono font-bold">{l.loom_no}</span>
-                <span className="text-[0.6875rem] font-normal text-muted-foreground">
-                  {l.loom_type} · {(l.panna_inch || 0).toFixed(1)}"
-                </span>
-              </CardTitle>
-              <span className="text-[0.6875rem] text-muted-foreground">ID: {l.id?.slice(0, 8)}</span>
-            </CardHeader>
-            <CardContent className="space-y-2 px-3 text-xs">
-              <div className="space-y-1">
-                <Label className="section-label text-[0.6875rem]">Status</Label>
-                <Select
-                  value={l.status || "IDLE"}
-                  onValueChange={(v) => handleSetStatus(l.id, v)}
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(["IDLE", "RUNNING", "MAINTENANCE", "BLOCKED"] as const).map((s) => (
-                      <SelectItem key={s} value={s} className="text-xs">
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p className="text-[0.6875rem] text-muted-foreground">
-                {l.remarks || "No remarks"}
-              </p>
-              {l.job_cards && l.job_cards.length > 0 && (
-                <p className="text-[0.6875rem] font-semibold">
-                  {l.job_cards.length} job card(s) active
-                </p>
-              )}
-            </CardContent>
-          </Card>
+      <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Filter looms">
+        {(
+          [
+            ["all", `All (${looms.length})`],
+            ["active", `Active (${looms.length - inactiveCount})`],
+            ["inactive", `Inactive (${inactiveCount})`],
+          ] as const
+        ).map(([id, label]) => (
+          <Button
+            key={id}
+            size="sm"
+            variant={filter === id ? "default" : "outline"}
+            className="h-7 text-xs"
+            aria-pressed={filter === id}
+            onClick={() => setFilter(id)}
+          >
+            {label}
+          </Button>
         ))}
-        {looms.length === 0 && (
+      </div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {visible.map((l) => (
+          <LoomCard
+            key={l.id}
+            loom={l}
+            jobCards={jobCards}
+            busy={
+              updateLoomStatus.isPending || assignJobCard.isPending || unassignJobCard.isPending
+            }
+            onStatus={(status) => void handleSetStatus(l.id, status)}
+            onAssign={(jobCardId) =>
+              assignJobCard.mutate(
+                { loom_id: l.id, job_card_id: jobCardId },
+                {
+                  onSuccess: () => {
+                    void qc.invalidateQueries({ queryKey: ["all_job_cards"] });
+                    toast.success(`Job card allocated to ${l.loom_no}`);
+                  },
+                  onError: toastError("Allocate job card"),
+                },
+              )
+            }
+            onRelease={() =>
+              unassignJobCard.mutate(l.id, {
+                onSuccess: () => toast.success(`${l.loom_no} released`),
+                onError: toastError("Release loom"),
+              })
+            }
+          />
+        ))}
+        {visible.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            No looms configured yet — add your first loom.
+            {looms.length === 0
+              ? "No looms configured yet — add your first loom."
+              : "No looms match this filter."}
           </p>
         )}
       </div>

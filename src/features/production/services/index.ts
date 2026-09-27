@@ -1,5 +1,6 @@
 import { isProductionDemoEnabled } from "@/features/production/config/demo-mode";
 import { ProductionDemoService } from "@/features/production/demo/production-demo-service";
+import { resetWarpingDemo } from "@/features/production/warping/warping-service";
 import {
   ProductionUnavailableError,
   type ProductionService,
@@ -76,4 +77,5 @@ export function getProductionService(): ProductionService {
 export function resetProductionDemo(): void {
   const service = getProductionService();
   if (service instanceof ProductionDemoService) service.reset();
+  resetWarpingDemo();
 }
