@@ -7,12 +7,7 @@ import {
   sumAmount,
   sumQty,
 } from "@/lib/erp/numbers";
-import {
-  formatAmount,
-  formatDate,
-  formatQty,
-  isIsoDate,
-} from "@/lib/erp/formatting";
+import { formatAmount, formatDate, formatQty, isIsoDate } from "@/lib/erp/formatting";
 import { toCsv } from "@/lib/erp/export";
 import {
   PRODUCTION_FEATURES,
@@ -57,12 +52,19 @@ describe("decimal-safe quantities", () => {
 });
 
 describe("production feature registry", () => {
-  it("has the 14 Rapier screens and 10 Warping shells with unique paths", () => {
+  it("has the 14 Rapier screens and 10 Warping screens with unique paths", () => {
     const rapier = PRODUCTION_FEATURES.filter((f) => f.module === "rapier");
     const warping = PRODUCTION_FEATURES.filter((f) => f.module === "warping");
     expect(rapier).toHaveLength(14);
     expect(warping).toHaveLength(10);
-    expect(warping.every((f) => f.status === "spec_pending")).toBe(true);
+    // Built from the old Beam Store functions; the other seven await their specification.
+    expect(
+      warping
+        .filter((f) => f.status === "demo")
+        .map((f) => f.slug)
+        .sort(),
+    ).toEqual(["beam-loading", "beam-production", "beam-unloading"]);
+    expect(warping.filter((f) => f.status === "spec_pending")).toHaveLength(7);
     const paths = PRODUCTION_FEATURES.map(featurePath);
     expect(new Set(paths).size).toBe(paths.length);
     expect(findFeature("rapier", "job-cards/daily-production")?.label).toBe(

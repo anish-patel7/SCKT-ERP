@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { SlidersHorizontal, TriangleAlert } from "lucide-react";
 import type { ProductionFeatureDefinition } from "@/features/production/config/production-features";
+import { ProductionSourceTabs } from "@/features/production/components/production-source-tabs";
+import { LiveJobCards } from "@/features/production/live/live-job-cards";
 import { ProductionPageShell } from "@/features/production/components/production-page-shell";
 import {
   ProductionRegister,
@@ -11,6 +13,7 @@ import { DraftsPanel } from "@/features/production/components/drafts-panel";
 import { RecordViewDialog } from "@/features/production/components/record-view-dialog";
 import { OperationalStatusBadge } from "@/features/production/components/status-badges";
 import { TraceabilityPanel } from "@/features/production/components/traceability-panel";
+import { QtyProgress } from "@/features/production/components/qty-progress";
 import {
   DateField,
   FieldGrid,
@@ -108,6 +111,15 @@ const JOB_CARD_COLUMNS: RegisterColumn<JobCardRow>[] = [
   },
   { id: "balance", header: "Balance Qty", value: (r) => r.balanceQty, kind: "qty", total: true },
   {
+    id: "progress",
+    header: "Woven Progress",
+    value: (r) => r.receivedQty,
+    kind: "qty",
+    width: 11,
+    hideOnMobile: true,
+    render: (r) => <QtyProgress done={r.receivedQty} total={r.issuedQty} label="Woven progress" />,
+  },
+  {
     id: "status",
     header: "Status",
     value: (r) => r.status,
@@ -141,203 +153,216 @@ export default function JobCardIssuesPage({ feature }: { feature: ProductionFeat
 
   return (
     <ProductionPageShell feature={feature}>
-      <DraftsPanel
-        kind="jobCard"
-        onEdit={form.open}
-        describe={(i) =>
-          `${jobOrders.data?.find((j) => j.id === i.jobOrderId)?.number ?? "No job order"} · card ${
-            i.cardNo || "—"
-          } · qty ${i.issuedQty || "—"}`
-        }
-      />
-      <ProductionRegister
-        title={feature.label}
-        exportName="job-card-issues"
-        rows={list.data}
-        isLoading={list.isFetching}
-        error={list.error}
-        onRefresh={() => void list.refetch()}
-        range={range}
-        onRangeChange={setRange}
-        columns={JOB_CARD_COLUMNS}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Challan, job order, party, machine…"
-        filters={[
-          { id: "status", label: "Status", value: (r) => r.status },
-          { id: "party", label: "Party", value: (r) => r.partyName },
-          { id: "machine", label: "Machine", value: (r) => r.machineName },
-        ]}
-        groupBy={[
-          { id: "party", label: "Party", value: (r) => r.partyName },
-          { id: "jobOrder", label: "Job Order", value: (r) => r.jobOrderNo },
-          { id: "machine", label: "Machine", value: (r) => r.machineName },
-          { id: "status", label: "Status", value: (r) => r.status },
-        ]}
-        onAdd={() => form.open()}
-        canAdd={canEnter}
-        onView={setViewing}
-        mobileBadges={(r) => <OperationalStatusBadge status={r.status} />}
-        rowActions={(r) =>
-          canEnter && r.status === "Pending" ? (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 gap-1 px-2 text-xs"
-              onClick={() => setAdjusting(r)}
-              title="Demo adjustment (backend: controlled permission + reason)"
-            >
-              <SlidersHorizontal className="size-3.5" /> Adjust
-            </Button>
-          ) : null
-        }
-      />
-
-      <ProductionFormDialog form={form} title="Job Card Issue Entry">
-        <DocumentInfoSection
-          idPrefix="jc"
-          dateLabel="Job Challan Date"
-          numberLabel="Job Challan No."
-          date={v.date}
-          onDate={(d) => form.set("date", d)}
-          dateError={e["date"]}
-        >
-          <TextField
-            id="jc-card"
-            label="Card No."
-            required
-            value={v.cardNo}
-            onChange={(x) => form.set("cardNo", x)}
-            error={e["cardNo"]}
-          />
-        </DocumentInfoSection>
-        <FormSection title="Business Reference">
-          <FieldGrid>
-            <ReferenceSelect
-              id="jc-job-order"
-              label="Job Order"
-              required
-              value={v.jobOrderId}
-              options={(jobOrders.data ?? []).map((j) => ({
-                id: j.id,
-                label: j.number,
-                detail: `${j.partyName} · ${j.itemName}`,
-              }))}
-              onChange={(id) => {
-                const selected = jobOrders.data?.find((j) => j.id === id);
-                form.update((prev) => ({
-                  ...prev,
-                  jobOrderId: id,
-                  // Prefill from the job order; still editable.
-                  partyId: prev.partyId || selected?.orderPartyId || "",
-                  itemId: prev.itemId || selected?.itemId || "",
-                  yarnId: prev.yarnId || selected?.yarnId || "",
-                }));
-                form.clearError("jobOrderId");
-              }}
-              error={e["jobOrderId"]}
-            />
-            <ReadOnlyField label="Order No." value={jo?.salesOrderNo} />
-            <ReferenceSelect
-              id="jc-party"
-              label="Party"
-              required
-              value={v.partyId}
-              options={partyOptions(m?.parties, "customer")}
-              onChange={(id) => form.set("partyId", id)}
-              error={e["partyId"]}
-            />
-            <ReferenceSelect
-              id="jc-item"
-              label="Item"
-              required
-              value={v.itemId}
-              options={masterOptions(m?.items)}
-              onChange={(id) => form.set("itemId", id)}
-              error={e["itemId"]}
-            />
-            <ReferenceSelect
-              id="jc-yarn"
-              label="Yarn"
-              required
-              value={v.yarnId}
-              options={masterOptions(m?.yarns)}
-              onChange={(id) => form.set("yarnId", id)}
-              error={e["yarnId"]}
-            />
-            <ReferenceSelect
-              id="jc-machine"
-              label="Machine / Loom"
-              required
-              value={v.machineId}
-              options={(m?.machines ?? []).map((mc) => ({
-                id: mc.id,
-                label: mc.name,
-                detail: m?.units.find((u) => u.id === mc.unitId)?.name ?? "",
-              }))}
-              onChange={(id) => {
-                form.set("machineId", id);
-                const unit = m?.machines.find((mc) => mc.id === id)?.unitId;
-                if (unit && !v.unitId) form.set("unitId", unit);
-              }}
-              error={e["machineId"]}
-            />
-            <ReferenceSelect
-              id="jc-unit"
-              label="Unit"
-              required
-              value={v.unitId}
-              options={masterOptions(m?.units)}
-              onChange={(id) => form.set("unitId", id)}
-              error={e["unitId"]}
-            />
-          </FieldGrid>
-        </FormSection>
-        <FormSection title="Quantity">
-          <FieldGrid cols={4}>
-            <NumberField
-              id="jc-issued"
-              label="Issued Qty"
-              required
-              value={v.issuedQty}
-              onChange={(x) => form.set("issuedQty", x)}
-              error={e["issuedQty"]}
-            />
-            <ReadOnlyField label="Received Qty" value="0.000 (updated by production / receipts)" />
-            <ReadOnlyField
-              label="Balance Qty"
-              value={Number.isFinite(num(v.issuedQty)) ? formatQty(num(v.issuedQty)) : "—"}
-              mono
-            />
-            <RemarkField id="jc-remark" value={v.remark} onChange={(x) => form.set("remark", x)} />
-          </FieldGrid>
-        </FormSection>
-        <TraceabilityPanel jobOrderId={v.jobOrderId || null} />
-      </ProductionFormDialog>
-
-      <RecordViewDialog
-        row={viewing}
-        title={(r) => `Job Card ${r.number}`}
-        columns={JOB_CARD_COLUMNS}
-        jobOrderId={(r) => r.jobOrderId}
-        onClose={() => setViewing(null)}
+      <ProductionSourceTabs
+        liveLabel="Job Cards"
+        liveNote="Live Job Cards from the database, as before (issue against a production order, job party / sub party, loom, woven progress, print). Job cards in the workflow tab are prototype records until the backend phase merges both."
+        live={<LiveJobCards />}
       >
-        {(r) =>
-          r.adjustments.length > 0 && (
-            <div className="rounded-md border border-border p-2 text-xs">
-              <div className="mb-1 font-semibold">Demo adjustments</div>
-              <ul className="space-y-0.5">
-                {r.adjustments.map((a) => (
-                  <li key={a.id}>
-                    {formatDate(a.date)} · {formatQty(a.qty)} · {a.reason}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        }
-      </RecordViewDialog>
+        <DraftsPanel
+          kind="jobCard"
+          onEdit={form.open}
+          describe={(i) =>
+            `${jobOrders.data?.find((j) => j.id === i.jobOrderId)?.number ?? "No job order"} · card ${
+              i.cardNo || "—"
+            } · qty ${i.issuedQty || "—"}`
+          }
+        />
+        <ProductionRegister
+          title={feature.label}
+          exportName="job-card-issues"
+          rows={list.data}
+          isLoading={list.isFetching}
+          error={list.error}
+          onRefresh={() => void list.refetch()}
+          range={range}
+          onRangeChange={setRange}
+          columns={JOB_CARD_COLUMNS}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Challan, job order, party, machine…"
+          filters={[
+            { id: "status", label: "Status", value: (r) => r.status },
+            { id: "party", label: "Party", value: (r) => r.partyName },
+            { id: "machine", label: "Machine", value: (r) => r.machineName },
+          ]}
+          groupBy={[
+            { id: "party", label: "Party", value: (r) => r.partyName },
+            { id: "jobOrder", label: "Job Order", value: (r) => r.jobOrderNo },
+            { id: "machine", label: "Machine", value: (r) => r.machineName },
+            { id: "status", label: "Status", value: (r) => r.status },
+          ]}
+          onAdd={() => form.open()}
+          canAdd={canEnter}
+          onView={setViewing}
+          mobileBadges={(r) => <OperationalStatusBadge status={r.status} />}
+          rowActions={(r) =>
+            canEnter && r.status === "Pending" ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1 px-2 text-xs"
+                onClick={() => setAdjusting(r)}
+                title="Demo adjustment (backend: controlled permission + reason)"
+              >
+                <SlidersHorizontal className="size-3.5" /> Adjust
+              </Button>
+            ) : null
+          }
+        />
 
-      <AdjustmentDialog card={adjusting} onClose={() => setAdjusting(null)} />
+        <ProductionFormDialog form={form} title="Job Card Issue Entry">
+          <DocumentInfoSection
+            idPrefix="jc"
+            dateLabel="Job Challan Date"
+            numberLabel="Job Challan No."
+            date={v.date}
+            onDate={(d) => form.set("date", d)}
+            dateError={e["date"]}
+          >
+            <TextField
+              id="jc-card"
+              label="Card No."
+              required
+              value={v.cardNo}
+              onChange={(x) => form.set("cardNo", x)}
+              error={e["cardNo"]}
+            />
+          </DocumentInfoSection>
+          <FormSection title="Business Reference">
+            <FieldGrid>
+              <ReferenceSelect
+                id="jc-job-order"
+                label="Job Order"
+                required
+                value={v.jobOrderId}
+                options={(jobOrders.data ?? []).map((j) => ({
+                  id: j.id,
+                  label: j.number,
+                  detail: `${j.partyName} · ${j.itemName}`,
+                }))}
+                onChange={(id) => {
+                  const selected = jobOrders.data?.find((j) => j.id === id);
+                  form.update((prev) => ({
+                    ...prev,
+                    jobOrderId: id,
+                    // Prefill from the job order; still editable.
+                    partyId: prev.partyId || selected?.orderPartyId || "",
+                    itemId: prev.itemId || selected?.itemId || "",
+                    yarnId: prev.yarnId || selected?.yarnId || "",
+                  }));
+                  form.clearError("jobOrderId");
+                }}
+                error={e["jobOrderId"]}
+              />
+              <ReadOnlyField label="Order No." value={jo?.salesOrderNo} />
+              <ReferenceSelect
+                id="jc-party"
+                label="Party"
+                required
+                value={v.partyId}
+                options={partyOptions(m?.parties, "customer")}
+                onChange={(id) => form.set("partyId", id)}
+                error={e["partyId"]}
+              />
+              <ReferenceSelect
+                id="jc-item"
+                label="Item"
+                required
+                value={v.itemId}
+                options={masterOptions(m?.items)}
+                onChange={(id) => form.set("itemId", id)}
+                error={e["itemId"]}
+              />
+              <ReferenceSelect
+                id="jc-yarn"
+                label="Yarn"
+                required
+                value={v.yarnId}
+                options={masterOptions(m?.yarns)}
+                onChange={(id) => form.set("yarnId", id)}
+                error={e["yarnId"]}
+              />
+              <ReferenceSelect
+                id="jc-machine"
+                label="Machine / Loom"
+                required
+                value={v.machineId}
+                options={(m?.machines ?? []).map((mc) => ({
+                  id: mc.id,
+                  label: mc.name,
+                  detail: m?.units.find((u) => u.id === mc.unitId)?.name ?? "",
+                }))}
+                onChange={(id) => {
+                  form.set("machineId", id);
+                  const unit = m?.machines.find((mc) => mc.id === id)?.unitId;
+                  if (unit && !v.unitId) form.set("unitId", unit);
+                }}
+                error={e["machineId"]}
+              />
+              <ReferenceSelect
+                id="jc-unit"
+                label="Unit"
+                required
+                value={v.unitId}
+                options={masterOptions(m?.units)}
+                onChange={(id) => form.set("unitId", id)}
+                error={e["unitId"]}
+              />
+            </FieldGrid>
+          </FormSection>
+          <FormSection title="Quantity">
+            <FieldGrid cols={4}>
+              <NumberField
+                id="jc-issued"
+                label="Issued Qty"
+                required
+                value={v.issuedQty}
+                onChange={(x) => form.set("issuedQty", x)}
+                error={e["issuedQty"]}
+              />
+              <ReadOnlyField
+                label="Received Qty"
+                value="0.000 (updated by production / receipts)"
+              />
+              <ReadOnlyField
+                label="Balance Qty"
+                value={Number.isFinite(num(v.issuedQty)) ? formatQty(num(v.issuedQty)) : "—"}
+                mono
+              />
+              <RemarkField
+                id="jc-remark"
+                value={v.remark}
+                onChange={(x) => form.set("remark", x)}
+              />
+            </FieldGrid>
+          </FormSection>
+          <TraceabilityPanel jobOrderId={v.jobOrderId || null} />
+        </ProductionFormDialog>
+
+        <RecordViewDialog
+          row={viewing}
+          title={(r) => `Job Card ${r.number}`}
+          columns={JOB_CARD_COLUMNS}
+          jobOrderId={(r) => r.jobOrderId}
+          onClose={() => setViewing(null)}
+        >
+          {(r) =>
+            r.adjustments.length > 0 && (
+              <div className="rounded-md border border-border p-2 text-xs">
+                <div className="mb-1 font-semibold">Demo adjustments</div>
+                <ul className="space-y-0.5">
+                  {r.adjustments.map((a) => (
+                    <li key={a.id}>
+                      {formatDate(a.date)} · {formatQty(a.qty)} · {a.reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </RecordViewDialog>
+
+        <AdjustmentDialog card={adjusting} onClose={() => setAdjusting(null)} />
+      </ProductionSourceTabs>
     </ProductionPageShell>
   );
 }

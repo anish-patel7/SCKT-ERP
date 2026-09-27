@@ -35,4 +35,17 @@ export const PRODUCTION_PAGES: Record<string, FeaturePage> = {
   "rapier.fabric-conversion": lazy(
     () => import("@/features/production/pages/fabric-conversion-page"),
   ),
+  "warping.beam-production": lazy(
+    () => import("@/features/production/warping/pages/beam-production-page"),
+  ),
+  "warping.beam-loading": lazy(() =>
+    import("@/features/production/warping/pages/beam-movement-pages").then((m) => ({
+      default: m.BeamLoadingPage,
+    })),
+  ),
+  "warping.beam-unloading": lazy(() =>
+    import("@/features/production/warping/pages/beam-movement-pages").then((m) => ({
+      default: m.BeamUnloadingPage,
+    })),
+  ),
 };

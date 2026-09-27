@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { ProductionFeatureDefinition } from "@/features/production/config/production-features";
+import { ProductionSourceTabs } from "@/features/production/components/production-source-tabs";
+import { LiveDailyProduction } from "@/features/production/live/live-daily-production";
 import { ProductionPageShell } from "@/features/production/components/production-page-shell";
 import {
   ProductionRegister,
@@ -9,10 +11,7 @@ import {
 import { ProductionFormDialog } from "@/features/production/components/production-form-dialog";
 import { DraftsPanel } from "@/features/production/components/drafts-panel";
 import { RecordViewDialog } from "@/features/production/components/record-view-dialog";
-import {
-  DetailGrid,
-  type DetailColumn,
-} from "@/components/erp/detail-grid";
+import { DetailGrid, type DetailColumn } from "@/components/erp/detail-grid";
 import {
   FieldGrid,
   FormSection,
@@ -44,20 +43,22 @@ import {
   useProductionList,
   useProductionMasters,
 } from "@/features/production/hooks/use-production";
-import type { DailyProductionRow, JobCardRow } from "@/features/production/types/production";
 import {
-  formatAmount,
-  formatQty,
-  formatRate,
-  todayIso,
-} from "@/lib/erp/formatting";
+  DOWNTIME_REASONS,
+  PRODUCTION_SHIFTS,
+  type DailyProductionRow,
+  type JobCardRow,
+  type ProductionShift,
+} from "@/features/production/types/production";
 import {
-  compareQty,
-  lineAmount,
-  subtractQty,
-  sumAmount,
-  sumQty,
-} from "@/lib/erp/numbers";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatAmount, formatQty, formatRate, formatWeight, todayIso } from "@/lib/erp/formatting";
+import { compareQty, lineAmount, subtractQty, sumAmount, sumQty } from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,
@@ -75,25 +76,42 @@ type LineValues = {
   saleRate: string;
   pickRate: string;
   rate: string;
+  /** Existing Daily Production fields (optional). */
+  yarnUsedKg: string;
+  downtimeMin: string;
+  downtimeReason: string;
 };
 type Values = {
   date: string;
   warehouseId: string;
   unitId: string;
   remark: string;
+  shift: ProductionShift | "";
   lines: LineValues[];
 };
+
+/** Blank optional number → null; anything else parsed (NaN is rejected by the service). */
+const optionalNum = (value: string) => (value.trim() === "" ? null : num(value));
+const NO_REASON = "__none";
 
 let lineSeq = 0;
 const newKey = () => `line-${++lineSeq}`;
 
 const CONFIG: DocumentFormConfig<"dailyProduction", Values> = {
-  empty: () => ({ date: todayIso(), warehouseId: "", unitId: "", remark: "", lines: [] }),
+  empty: () => ({
+    date: todayIso(),
+    warehouseId: "",
+    unitId: "",
+    remark: "",
+    shift: "",
+    lines: [],
+  }),
   toInput: (v) => ({
     date: v.date,
     warehouseId: v.warehouseId,
     unitId: v.unitId,
     remark: v.remark,
+    shift: v.shift,
     receiveType: "DAILY PRODUCTION",
     lines: v.lines.map((l) => ({
       jobCardId: l.jobCardId,
@@ -101,6 +119,9 @@ const CONFIG: DocumentFormConfig<"dailyProduction", Values> = {
       saleRate: num(l.saleRate),
       pickRate: num(l.pickRate),
       rate: num(l.rate),
+      yarnUsedKg: optionalNum(l.yarnUsedKg),
+      downtimeMin: optionalNum(l.downtimeMin),
+      downtimeReason: l.downtimeReason,
     })),
   }),
   fromInput: (i) => ({
@@ -108,6 +129,7 @@ const CONFIG: DocumentFormConfig<"dailyProduction", Values> = {
     warehouseId: i.warehouseId,
     unitId: i.unitId,
     remark: i.remark,
+    shift: i.shift ?? "",
     lines: i.lines.map((l) => ({
       key: newKey(),
       jobCardId: l.jobCardId,
@@ -115,6 +137,9 @@ const CONFIG: DocumentFormConfig<"dailyProduction", Values> = {
       saleRate: text(l.saleRate),
       pickRate: text(l.pickRate),
       rate: text(l.rate),
+      yarnUsedKg: l.yarnUsedKg == null ? "" : text(l.yarnUsedKg),
+      downtimeMin: l.downtimeMin == null ? "" : text(l.downtimeMin),
+      downtimeReason: l.downtimeReason ?? "",
     })),
   }),
 };
@@ -126,6 +151,7 @@ const COLUMNS: RegisterColumn<DailyProductionRow>[] = [
   { id: "type", header: "Receive Type", value: (r) => r.receiveType, width: 9, hideOnMobile: true },
   { id: "warehouse", header: "Warehouse", value: (r) => r.warehouseName, width: 9 },
   { id: "unit", header: "Unit", value: (r) => r.unitName, width: 5 },
+  { id: "shift", header: "Shift", value: (r) => (r.shift ? `Shift ${r.shift}` : null), width: 5 },
   { id: "cards", header: "Job Cards", value: (r) => r.lineCount, kind: "text", width: 5 },
   { id: "qty", header: "Total Qty", value: (r) => r.totalQty, kind: "qty", total: true },
   { id: "amount", header: "Amount", value: (r) => r.totalAmount, kind: "amount", total: true },
@@ -169,7 +195,10 @@ export default function DailyProductionPage({ feature }: { feature: ProductionFe
   };
 
   const numberCell =
-    (field: "qty" | "saleRate" | "pickRate" | "rate", label: string) =>
+    (
+      field: "qty" | "saleRate" | "pickRate" | "rate" | "yarnUsedKg" | "downtimeMin",
+      label: string,
+    ) =>
     (l: LineValues, i: number) => (
       <div className="min-w-20">
         <Input
@@ -268,6 +297,43 @@ export default function DailyProductionPage({ feature }: { feature: ProductionFe
         return a === null ? "—" : formatAmount(a);
       },
     },
+    {
+      id: "yarnUsedKg",
+      header: "Yarn Used (kg)",
+      width: 6,
+      align: "right",
+      render: numberCell("yarnUsedKg", "Yarn Used (kg)"),
+    },
+    {
+      id: "downtimeMin",
+      header: "Downtime (min)",
+      width: 6,
+      align: "right",
+      render: numberCell("downtimeMin", "Downtime (min)"),
+    },
+    {
+      id: "downtimeReason",
+      header: "Downtime Reason",
+      width: 10,
+      render: (l, i) => (
+        <Select
+          value={l.downtimeReason || NO_REASON}
+          onValueChange={(x) => setLine(i, { downtimeReason: x === NO_REASON ? "" : x })}
+        >
+          <SelectTrigger aria-label={`Line ${i + 1} Downtime Reason`} className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NO_REASON}>—</SelectItem>
+            {DOWNTIME_REASONS.map((r) => (
+              <SelectItem key={r} value={r}>
+                {r}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ),
+    },
   ];
 
   const totalQty = sumQty(v.lines.map((l) => num(l.qty)).filter(Number.isFinite));
@@ -275,199 +341,232 @@ export default function DailyProductionPage({ feature }: { feature: ProductionFe
 
   return (
     <ProductionPageShell feature={feature}>
-      <DraftsPanel
-        kind="dailyProduction"
-        onEdit={form.open}
-        describe={(i) =>
-          `${i.lines.length} job card line(s) · ${m?.warehouses.find((w) => w.id === i.warehouseId)?.name ?? "No warehouse"}`
-        }
-      />
-      <ProductionRegister
-        title={feature.label}
-        exportName="daily-production"
-        rows={list.data}
-        isLoading={list.isFetching}
-        error={list.error}
-        onRefresh={() => void list.refetch()}
-        range={range}
-        onRangeChange={setRange}
-        columns={COLUMNS}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Receive no., warehouse, unit…"
-        filters={[
-          { id: "warehouse", label: "Warehouse", value: (r) => r.warehouseName },
-          { id: "unit", label: "Unit", value: (r) => r.unitName },
-        ]}
-        groupBy={[
-          { id: "unit", label: "Unit", value: (r) => r.unitName },
-          { id: "warehouse", label: "Warehouse", value: (r) => r.warehouseName },
-        ]}
-        onAdd={() => form.open()}
-        canAdd={canEnter}
-        onView={setViewing}
-      />
-
-      <ProductionFormDialog form={form} title="Daily Job Card Production Entry" size="xl">
-        <DocumentInfoSection
-          idPrefix="dp"
-          dateLabel="Receive Date"
-          numberLabel="Receive No."
-          date={v.date}
-          onDate={(d) => form.set("date", d)}
-          dateError={e["date"]}
-        >
-          <ReadOnlyField label="Transaction ID" value="Assigned on post" />
-          <ReadOnlyField label="Receive Type" value="DAILY PRODUCTION" />
-        </DocumentInfoSection>
-        <FormSection title="Header">
-          <FieldGrid cols={4}>
-            <ReferenceSelect
-              id="dp-warehouse"
-              label="Warehouse"
-              required
-              value={v.warehouseId}
-              options={masterOptions(m?.warehouses)}
-              onChange={(id) => form.set("warehouseId", id)}
-              error={e["warehouseId"]}
-            />
-            <ReferenceSelect
-              id="dp-unit"
-              label="Unit"
-              required
-              value={v.unitId}
-              options={masterOptions(m?.units)}
-              onChange={(id) => form.set("unitId", id)}
-              error={e["unitId"]}
-            />
-            <RemarkField id="dp-remark" value={v.remark} onChange={(x) => form.set("remark", x)} />
-          </FieldGrid>
-        </FormSection>
-        <FormSection
-          title="Production Detail"
-          description="Each line adds to the job card's received quantity when posted."
-          actions={
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1"
-              onClick={() => setPicking(true)}
-            >
-              <Plus className="size-3.5" /> Add Job Card
-            </Button>
+      <ProductionSourceTabs
+        liveLabel="Daily Production"
+        liveNote="Live daily production log from the database, as before (shift, job card, loom, metres, yarn, downtime). Entries in the workflow tab are prototype records until the backend phase merges both."
+        live={<LiveDailyProduction />}
+      >
+        <DraftsPanel
+          kind="dailyProduction"
+          onEdit={form.open}
+          describe={(i) =>
+            `${i.lines.length} job card line(s) · ${m?.warehouses.find((w) => w.id === i.warehouseId)?.name ?? "No warehouse"}`
           }
-        >
-          {e["lines"] && (
-            <p role="alert" className="mb-2 text-xs text-destructive">
-              {e["lines"]}
-            </p>
-          )}
-          <DetailGrid
-            columns={lineColumns}
-            lines={v.lines}
-            lineKey={(l) => l.key}
-            lineLabel="Job card"
-            emptyText="No job cards added. Use “Add Job Card” to select open job cards."
-            onRemove={(index) =>
-              form.update((prev) => ({ ...prev, lines: prev.lines.filter((_, i) => i !== index) }))
+        />
+        <ProductionRegister
+          title={feature.label}
+          exportName="daily-production"
+          rows={list.data}
+          isLoading={list.isFetching}
+          error={list.error}
+          onRefresh={() => void list.refetch()}
+          range={range}
+          onRangeChange={setRange}
+          columns={COLUMNS}
+          rowKey={(r) => r.id}
+          searchPlaceholder="Receive no., warehouse, unit…"
+          filters={[
+            { id: "warehouse", label: "Warehouse", value: (r) => r.warehouseName },
+            { id: "unit", label: "Unit", value: (r) => r.unitName },
+          ]}
+          groupBy={[
+            { id: "unit", label: "Unit", value: (r) => r.unitName },
+            { id: "warehouse", label: "Warehouse", value: (r) => r.warehouseName },
+          ]}
+          onAdd={() => form.open()}
+          canAdd={canEnter}
+          onView={setViewing}
+        />
+
+        <ProductionFormDialog form={form} title="Daily Job Card Production Entry" size="xl">
+          <DocumentInfoSection
+            idPrefix="dp"
+            dateLabel="Receive Date"
+            numberLabel="Receive No."
+            date={v.date}
+            onDate={(d) => form.set("date", d)}
+            dateError={e["date"]}
+          >
+            <ReadOnlyField label="Transaction ID" value="Assigned on post" />
+            <ReadOnlyField label="Receive Type" value="DAILY PRODUCTION" />
+          </DocumentInfoSection>
+          <FormSection title="Header">
+            <FieldGrid cols={4}>
+              <ReferenceSelect
+                id="dp-warehouse"
+                label="Warehouse"
+                required
+                value={v.warehouseId}
+                options={masterOptions(m?.warehouses)}
+                onChange={(id) => form.set("warehouseId", id)}
+                error={e["warehouseId"]}
+              />
+              <ReferenceSelect
+                id="dp-unit"
+                label="Unit"
+                required
+                value={v.unitId}
+                options={masterOptions(m?.units)}
+                onChange={(id) => form.set("unitId", id)}
+                error={e["unitId"]}
+              />
+              <ReferenceSelect
+                id="dp-shift"
+                label="Shift"
+                value={v.shift}
+                options={PRODUCTION_SHIFTS.map((s) => ({ id: s, label: `Shift ${s}` }))}
+                onChange={(id) => form.set("shift", id as ProductionShift)}
+              />
+              <RemarkField
+                id="dp-remark"
+                value={v.remark}
+                onChange={(x) => form.set("remark", x)}
+              />
+            </FieldGrid>
+          </FormSection>
+          <FormSection
+            title="Production Detail"
+            description="Each line adds to the job card's received quantity when posted."
+            actions={
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1"
+                onClick={() => setPicking(true)}
+              >
+                <Plus className="size-3.5" /> Add Job Card
+              </Button>
             }
-          />
-          {v.lines.length > 0 && (
-            <div className="mt-2 flex flex-wrap justify-end gap-4 text-xs">
-              <span>
-                Lines <strong className="font-mono">{v.lines.length}</strong>
-              </span>
-              <span>
-                Total Qty <strong className="font-mono">{formatQty(totalQty)}</strong>
-              </span>
-              <span>
-                Total Amount <strong className="font-mono">{formatAmount(totalAmount)}</strong>
-              </span>
+          >
+            {e["lines"] && (
+              <p role="alert" className="mb-2 text-xs text-destructive">
+                {e["lines"]}
+              </p>
+            )}
+            <DetailGrid
+              columns={lineColumns}
+              lines={v.lines}
+              lineKey={(l) => l.key}
+              lineLabel="Job card"
+              emptyText="No job cards added. Use “Add Job Card” to select open job cards."
+              onRemove={(index) =>
+                form.update((prev) => ({
+                  ...prev,
+                  lines: prev.lines.filter((_, i) => i !== index),
+                }))
+              }
+            />
+            {v.lines.length > 0 && (
+              <div className="mt-2 flex flex-wrap justify-end gap-4 text-xs">
+                <span>
+                  Lines <strong className="font-mono">{v.lines.length}</strong>
+                </span>
+                <span>
+                  Total Qty <strong className="font-mono">{formatQty(totalQty)}</strong>
+                </span>
+                <span>
+                  Total Amount <strong className="font-mono">{formatAmount(totalAmount)}</strong>
+                </span>
+              </div>
+            )}
+          </FormSection>
+        </ProductionFormDialog>
+
+        <JobCardPicker
+          open={picking}
+          cards={(cards.data ?? []).filter(
+            (c) => c.status === "Pending" && c.documentStatus === "POSTED",
+          )}
+          onClose={() => setPicking(false)}
+          onPick={(card) => {
+            form.update((prev) => ({
+              ...prev,
+              unitId: prev.unitId || card.unitId,
+              lines: [
+                ...prev.lines,
+                {
+                  key: newKey(),
+                  jobCardId: card.id,
+                  qty: "",
+                  saleRate: "0",
+                  pickRate: "0",
+                  rate: "0",
+                  yarnUsedKg: "",
+                  downtimeMin: "",
+                  downtimeReason: "",
+                },
+              ],
+            }));
+            form.clearError("lines");
+            setPicking(false);
+          }}
+        />
+
+        <RecordViewDialog
+          row={viewing}
+          title={(r) => `Daily Production ${r.number}`}
+          columns={COLUMNS}
+          onClose={() => setViewing(null)}
+        >
+          {(r) => (
+            <div className="overflow-x-auto rounded-md border border-border">
+              <table className="w-full text-xs">
+                <thead className="bg-muted">
+                  <tr>
+                    {[
+                      "Job Challan",
+                      "Job Order",
+                      "Party",
+                      "Machine",
+                      "Qty",
+                      "Pick Rate",
+                      "Rate",
+                      "Amount",
+                      "Yarn (kg)",
+                      "Downtime",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        scope="col"
+                        className="h-8 whitespace-nowrap px-2 text-left font-semibold"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {r.lines.map((l) => {
+                    const card = cardOf(l.jobCardId);
+                    return (
+                      <tr key={l.id} className="border-t border-border">
+                        <td className="px-2 py-1 font-mono">{card?.number ?? "—"}</td>
+                        <td className="px-2 py-1">{card?.jobOrderNo ?? "—"}</td>
+                        <td className="px-2 py-1">{card?.partyName ?? "—"}</td>
+                        <td className="px-2 py-1">{card?.machineName ?? "—"}</td>
+                        <td className="px-2 py-1 text-right font-mono">{formatQty(l.qty)}</td>
+                        <td className="px-2 py-1 text-right font-mono">{formatRate(l.pickRate)}</td>
+                        <td className="px-2 py-1 text-right font-mono">{formatRate(l.rate)}</td>
+                        <td className="px-2 py-1 text-right font-mono">
+                          {formatAmount(lineAmount(l.qty, l.rate))}
+                        </td>
+                        <td className="px-2 py-1 text-right font-mono">
+                          {l.yarnUsedKg == null ? "—" : formatWeight(l.yarnUsedKg)}
+                        </td>
+                        <td className="px-2 py-1">
+                          {l.downtimeMin == null
+                            ? "—"
+                            : `${l.downtimeMin} min${l.downtimeReason ? ` · ${l.downtimeReason}` : ""}`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
-        </FormSection>
-      </ProductionFormDialog>
-
-      <JobCardPicker
-        open={picking}
-        cards={(cards.data ?? []).filter(
-          (c) => c.status === "Pending" && c.documentStatus === "POSTED",
-        )}
-        onClose={() => setPicking(false)}
-        onPick={(card) => {
-          form.update((prev) => ({
-            ...prev,
-            unitId: prev.unitId || card.unitId,
-            lines: [
-              ...prev.lines,
-              {
-                key: newKey(),
-                jobCardId: card.id,
-                qty: "",
-                saleRate: "0",
-                pickRate: "0",
-                rate: "0",
-              },
-            ],
-          }));
-          form.clearError("lines");
-          setPicking(false);
-        }}
-      />
-
-      <RecordViewDialog
-        row={viewing}
-        title={(r) => `Daily Production ${r.number}`}
-        columns={COLUMNS}
-        onClose={() => setViewing(null)}
-      >
-        {(r) => (
-          <div className="overflow-x-auto rounded-md border border-border">
-            <table className="w-full text-xs">
-              <thead className="bg-muted">
-                <tr>
-                  {[
-                    "Job Challan",
-                    "Job Order",
-                    "Party",
-                    "Machine",
-                    "Qty",
-                    "Pick Rate",
-                    "Rate",
-                    "Amount",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      scope="col"
-                      className="h-8 whitespace-nowrap px-2 text-left font-semibold"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {r.lines.map((l) => {
-                  const card = cardOf(l.jobCardId);
-                  return (
-                    <tr key={l.id} className="border-t border-border">
-                      <td className="px-2 py-1 font-mono">{card?.number ?? "—"}</td>
-                      <td className="px-2 py-1">{card?.jobOrderNo ?? "—"}</td>
-                      <td className="px-2 py-1">{card?.partyName ?? "—"}</td>
-                      <td className="px-2 py-1">{card?.machineName ?? "—"}</td>
-                      <td className="px-2 py-1 text-right font-mono">{formatQty(l.qty)}</td>
-                      <td className="px-2 py-1 text-right font-mono">{formatRate(l.pickRate)}</td>
-                      <td className="px-2 py-1 text-right font-mono">{formatRate(l.rate)}</td>
-                      <td className="px-2 py-1 text-right font-mono">
-                        {formatAmount(lineAmount(l.qty, l.rate))}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </RecordViewDialog>
+        </RecordViewDialog>
+      </ProductionSourceTabs>
     </ProductionPageShell>
   );
 }
