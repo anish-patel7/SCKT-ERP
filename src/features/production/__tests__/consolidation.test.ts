@@ -105,15 +105,13 @@ describe("Daily Production — shift and downtime carried over", () => {
   });
 });
 
-describe("Warping beam register (old Beam Store functions)", () => {
+describe("Warping beam lifecycle (provisional)", () => {
   let svc: WarpingDemoService;
   beforeEach(() => {
     svc = new WarpingDemoService();
   });
 
-  const newBeam = {
-    date: today,
-    beamNo: "BM-300",
+  const warp = {
     setNo: "S-9",
     beamType: "Ground",
     warpYarnId: "yn-kota-black",
@@ -123,84 +121,253 @@ describe("Warping beam register (old Beam Store functions)", () => {
     rack: "RACK-C-01",
     remark: "",
   };
+  const beamOf = async (no: string) => {
+    const b = (await svc.listBeams()).find((x) => x.beamNo === no);
+    if (!b) throw new Error(`${no} missing`);
+    return b;
+  };
+  const msg = (e: unknown) => (e as WarpingValidationError).message;
 
-  it("seeds BM-101 on LOOM-33 and is the same beam list Production uses", async () => {
+  it("seeds every lifecycle state and is the same beam list Production uses", async () => {
     const beams = await svc.listBeams();
-    expect(beams.find((b) => b.beamNo === "BM-101")).toMatchObject({
-      status: "LOADED_ON_LOOM",
-      loomName: "LOOM-33",
+    expect(Object.fromEntries(beams.map((b) => [b.beamNo, b.status]))).toEqual({
+      "BM-101": "LOADED_ON_LOOM",
+      "BM-102": "IN_STORE",
+      "BM-205": "LOADED_ON_LOOM",
+      "BM-310": "EMPTY",
+      "BM-311": "AT_WARPING",
     });
+    expect((await beamOf("BM-101")).loomName).toBe("LOOM-33");
     expect(DEMO_MASTERS.beams.map((b) => b.id).sort()).toEqual(beams.map((b) => b.id).sort());
+    const issues = await svc.listMaterialIssues();
+    expect(issues.find((i) => i.beamNo === "BM-101")).toMatchObject({
+      qtyKg: 45,
+      returnedKg: 2.5,
+      netIssuedKg: 42.5,
+    });
   });
 
-  it("new warped beam is in store with a QR payload; duplicate beam no. rejected", async () => {
-    const beam = await svc.produceBeam(newBeam);
-    expect(beam).toMatchObject({
+  it("empty inward → issue → material → production → load → unload to empty", async () => {
+    await svc.inwardEmptyBeam({
+      date: today,
+      beamNo: "BM-400",
+      beamType: "Ground",
+      partyId: "",
+      challanNo: "",
+      rack: "E-09",
+      remark: "",
+    });
+    expect(await beamOf("BM-400")).toMatchObject({ status: "EMPTY", warp: null, rack: "E-09" });
+    const empty = await beamOf("BM-400");
+
+    const early = await error(
+      svc.issueMaterial({ date: today, beamId: empty.id, yarnId: "yn-zari", qtyKg: 5, remark: "" }),
+    );
+    expect(msg(early)).toMatch(/not at warping/);
+
+    await svc.issueBeam({ beamId: empty.id, date: today, partyId: "", remark: "" });
+    expect((await beamOf("BM-400")).status).toBe("AT_WARPING");
+    await svc.issueMaterial({
+      date: today,
+      beamId: empty.id,
+      yarnId: "yn-kota-black",
+      qtyKg: 40,
+      remark: "",
+    });
+
+    await svc.produceBeam({ ...warp, date: today, beamNo: "bm-400" });
+    let row = await beamOf("BM-400");
+    expect(row).toMatchObject({
       status: "IN_STORE",
-      loomId: null,
-      qrCode: "SCKT-BEAM|BM-300|S-9",
+      setNo: "S-9",
+      totalEnds: 5000,
+      qrCode: "SCKT-BEAM|BM-400|S-9",
     });
-    const dup = await error(svc.produceBeam({ ...newBeam, beamNo: "bm-300" }));
-    expect(dup).toBeInstanceOf(WarpingValidationError);
-    const bad = await error(svc.produceBeam({ ...newBeam, beamNo: "BM-301", totalEnds: 10.5 }));
-    expect((bad as WarpingValidationError).field).toBe("totalEnds");
-  });
 
-  it("load → unload keeps one history per beam and enforces status", async () => {
-    const beam = await svc.produceBeam(newBeam);
-    await svc.loadBeam({ beamId: beam.id, loomId: "mc-41", date: today, remark: "" });
-    let row = (await svc.listBeams()).find((b) => b.id === beam.id);
-    expect(row).toMatchObject({ status: "LOADED_ON_LOOM", loomName: "LOOM-41", rack: "" });
+    const again = await error(svc.produceBeam({ ...warp, date: today, beamNo: "BM-400" }));
+    expect(msg(again)).toMatch(/already carries a warp/);
 
-    const again = await error(
-      svc.loadBeam({ beamId: beam.id, loomId: "mc-07", date: today, remark: "" }),
-    );
-    expect((again as WarpingValidationError).message).toMatch(/already on a loom/);
-    const move = await error(
-      svc.moveBeam({ beamId: beam.id, date: today, toStatus: "SIZING", rack: "", remark: "" }),
-    );
-    expect((move as WarpingValidationError).message).toMatch(/Beam Unload Entry/);
-
+    await svc.loadBeam({ beamId: row.id, loomId: "mc-41", date: today, remark: "" });
     await svc.unloadBeam({
-      beamId: beam.id,
+      beamId: row.id,
       date: today,
-      toStatus: "IN_STORE",
-      rack: "RACK-C-02",
+      toStatus: "EMPTY",
+      rack: "E-10",
       remark: "",
     });
-    row = (await svc.listBeams()).find((b) => b.id === beam.id);
-    expect(row).toMatchObject({ status: "IN_STORE", loomId: null, rack: "RACK-C-02" });
-
-    const history = (await svc.listMovements()).filter((m) => m.beamId === beam.id);
-    expect(history.map((m) => m.kind).sort()).toEqual(["LOADED", "PRODUCED", "UNLOADED"]);
-    const unload = history.find((m) => m.kind === "UNLOADED");
-    expect(unload).toMatchObject({ fromLoomName: "LOOM-41", fromStatus: "LOADED_ON_LOOM" });
+    row = await beamOf("BM-400");
+    expect(row).toMatchObject({
+      status: "EMPTY",
+      warp: null,
+      setNo: "",
+      loomId: null,
+      rack: "E-10",
+    });
+    const kinds = (await svc.listMovements()).filter((m) => m.beamId === row.id).map((m) => m.kind);
+    expect(kinds.sort()).toEqual([
+      "EMPTY_INWARD",
+      "ISSUED_FOR_WARPING",
+      "LOADED",
+      "PRODUCED",
+      "UNLOADED",
+    ]);
   });
 
-  it("rejects a movement dated before the beam's last movement", async () => {
-    const beam = await svc.produceBeam(newBeam);
-    const err = await error(
-      svc.loadBeam({ beamId: beam.id, loomId: "mc-41", date: addDays(today, -1), remark: "" }),
+  it("beam receive needs the party it was issued to; a new beam no. registers a new beam", async () => {
+    const empty = await beamOf("BM-310");
+    await svc.issueBeam({ beamId: empty.id, date: today, partyId: "jw-mahavir", remark: "" });
+    const wrong = await error(
+      svc.receiveBeam({
+        ...warp,
+        date: today,
+        beamNo: "BM-310",
+        partyId: "jw-ganesh",
+        challanNo: "",
+      }),
     );
-    expect((err as WarpingValidationError).field).toBe("date");
-  });
-
-  it("only loaded beams can be unloaded; depleted beams cannot be loaded", async () => {
-    const beam = await svc.produceBeam(newBeam);
-    const err = await error(
-      svc.unloadBeam({ beamId: beam.id, date: today, toStatus: "IN_STORE", rack: "", remark: "" }),
-    );
-    expect((err as WarpingValidationError).message).toMatch(/not loaded/);
-    await svc.moveBeam({
-      beamId: beam.id,
+    expect((wrong as WarpingValidationError).field).toBe("partyId");
+    await svc.receiveBeam({
+      ...warp,
       date: today,
-      toStatus: "DEPLETED",
+      beamNo: "BM-310",
+      partyId: "jw-mahavir",
+      challanNo: "MBW/9",
+    });
+    expect((await beamOf("BM-310")).status).toBe("IN_STORE");
+    const rc = (await svc.listMovements("RECEIVED")).find((m) => m.beamNo === "BM-310");
+    expect(rc).toMatchObject({ partyName: "MAHAVIR BUTTA WORKS", challanNo: "MBW/9" });
+
+    await svc.receiveBeam({
+      ...warp,
+      date: today,
+      beamNo: "BM-500",
+      setNo: "S-10",
+      partyId: "jw-ganesh",
+      challanNo: "",
+    });
+    expect((await beamOf("BM-500")).status).toBe("IN_STORE");
+  });
+
+  it("empty beam inward also takes back an unwarped beam from warping", async () => {
+    await svc.inwardEmptyBeam({
+      date: today,
+      beamNo: "BM-311",
+      beamType: "",
+      partyId: "",
+      challanNo: "",
+      rack: "E-05",
+      remark: "not warped",
+    });
+    expect((await beamOf("BM-311")).status).toBe("EMPTY");
+    const dup = await error(
+      svc.inwardEmptyBeam({
+        date: today,
+        beamNo: "BM-102",
+        beamType: "Border",
+        partyId: "",
+        challanNo: "",
+        rack: "",
+        remark: "",
+      }),
+    );
+    expect(msg(dup)).toMatch(/already registered/);
+  });
+
+  it("production loading warps and loads in one entry", async () => {
+    const beam = await beamOf("BM-310");
+    await svc.issueBeam({ beamId: beam.id, date: today, partyId: "", remark: "" });
+    await svc.produceAndLoadBeam({ ...warp, date: today, beamNo: "BM-310", loomId: "mc-07" });
+    expect(await beamOf("BM-310")).toMatchObject({
+      status: "LOADED_ON_LOOM",
+      loomName: "LOOM-07",
       rack: "",
-      remark: "",
     });
-    const load = await error(
-      svc.loadBeam({ beamId: beam.id, loomId: "mc-41", date: today, remark: "" }),
+  });
+
+  it("material return is limited to the net issued; updation needs a reason and keeps net ≥ 0", async () => {
+    const issue = (await svc.listMaterialIssues()).find((i) => i.beamNo === "BM-311");
+    if (!issue) throw new Error("BM-311 issue missing");
+    expect(issue.netIssuedKg).toBe(30);
+    const tooMuch = await error(
+      svc.returnMaterial({ date: today, materialIssueId: issue.id, qtyKg: 31, remark: "" }),
     );
-    expect((load as WarpingValidationError).message).toMatch(/not in store/);
+    expect(msg(tooMuch)).toMatch(/Only 30.000 kg/);
+    await svc.returnMaterial({ date: today, materialIssueId: issue.id, qtyKg: 10, remark: "" });
+
+    const noReason = await error(
+      svc.updateYarnIssue({
+        date: today,
+        materialIssueId: issue.id,
+        source: "TFO",
+        qtyChangeKg: 2,
+        reason: " ",
+      }),
+    );
+    expect((noReason as WarpingValidationError).field).toBe("reason");
+    await svc.updateYarnIssue({
+      date: today,
+      materialIssueId: issue.id,
+      source: "TFO",
+      qtyChangeKg: 2.5,
+      reason: "TFO excess",
+    });
+    const below = await error(
+      svc.updateYarnIssue({
+        date: today,
+        materialIssueId: issue.id,
+        source: "BEAM",
+        qtyChangeKg: -23,
+        reason: "x",
+      }),
+    );
+    expect(msg(below)).toMatch(/cannot go below zero/);
+
+    const row = (await svc.listMaterialIssues()).find((i) => i.id === issue.id);
+    expect(row).toMatchObject({ returnedKg: 10, adjustmentKg: 2.5, netIssuedKg: 22.5 });
+    expect((await svc.listYarnIssueUpdates())[0]).toMatchObject({
+      source: "TFO",
+      beamNo: "BM-311",
+    });
+  });
+
+  it("status rules: only in-store beams load, only loaded beams unload, dates never go back", async () => {
+    const empty = await beamOf("BM-310");
+    expect(
+      msg(
+        await error(svc.loadBeam({ beamId: empty.id, loomId: "mc-41", date: today, remark: "" })),
+      ),
+    ).toMatch(/not a warped beam in store/);
+    const stored = await beamOf("BM-102");
+    expect(
+      msg(
+        await error(
+          svc.unloadBeam({
+            beamId: stored.id,
+            date: today,
+            toStatus: "IN_STORE",
+            rack: "",
+            remark: "",
+          }),
+        ),
+      ),
+    ).toMatch(/not loaded/);
+    const back = await error(
+      svc.loadBeam({ beamId: stored.id, loomId: "mc-41", date: addDays(today, -40), remark: "" }),
+    );
+    expect((back as WarpingValidationError).field).toBe("date");
+    const onLoom = await beamOf("BM-101");
+    expect(
+      msg(
+        await error(
+          svc.moveBeam({
+            beamId: onLoom.id,
+            date: today,
+            toStatus: "SIZING",
+            rack: "",
+            remark: "",
+          }),
+        ),
+      ),
+    ).toMatch(/Beam Unload Entry/);
   });
 });

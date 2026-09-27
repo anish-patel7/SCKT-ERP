@@ -18,15 +18,20 @@ export function qrSvg(payload: string): string {
 const esc = (v: string) =>
   v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** Text lines printed under the QR code. */
+/** Text lines printed under the QR code (warp details only while the beam is warped). */
 export function beamLabelLines(beam: BeamRow): [string, string][] {
+  if (!beam.warp)
+    return [
+      ["Type", beam.beamType],
+      ["Status", "Empty beam"],
+    ];
   return [
-    ["Set", beam.setNo],
+    ["Set", beam.warp.setNo],
     ["Type", beam.beamType],
-    ["Yarn", `${beam.warpYarnName} ${beam.countDenier}`.trim()],
-    ["Ends", String(beam.totalEnds)],
-    ["Length", `${formatNumber(beam.lengthMetre, "metres")} m`],
-    ["Made", formatDate(beam.date)],
+    ["Yarn", `${beam.warpYarnName} ${beam.warp.countDenier}`.trim()],
+    ["Ends", String(beam.warp.totalEnds)],
+    ["Length", `${formatNumber(beam.warp.lengthMetre, "metres")} m`],
+    ["Warped", beam.warpedOn ? formatDate(beam.warpedOn) : "—"],
   ];
 }
 

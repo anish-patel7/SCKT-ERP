@@ -8,21 +8,44 @@
  */
 import type { IsoDate } from "@/lib/erp/formatting";
 
-/** Beam statuses carried over from the old Beam Store register. */
-export const BEAM_STATUSES = ["IN_STORE", "LOADED_ON_LOOM", "SIZING", "DEPLETED"] as const;
+/**
+ * Beam lifecycle. IN_STORE / LOADED_ON_LOOM / SIZING come from the old Beam Store; its
+ * "depleted" state is EMPTY here, and AT_WARPING covers an empty beam issued for warping.
+ * PROVISIONAL LIFECYCLE — PENDING CONFIRMATION with the Warping screenshots.
+ */
+export const BEAM_STATUSES = [
+  "EMPTY",
+  "AT_WARPING",
+  "IN_STORE",
+  "LOADED_ON_LOOM",
+  "SIZING",
+] as const;
 export type BeamStatus = (typeof BEAM_STATUSES)[number];
 
 export const BEAM_STATUS_LABEL: Record<BeamStatus, string> = {
-  IN_STORE: "In Store",
+  EMPTY: "Empty",
+  AT_WARPING: "At Warping",
+  IN_STORE: "In Store (Warped)",
   LOADED_ON_LOOM: "Loaded on Loom",
   SIZING: "In Sizing Bay",
-  DEPLETED: "Depleted / Empty",
 };
 
-export type BeamMovementKind = "PRODUCED" | "LOADED" | "UNLOADED" | "LOCATION_STATUS";
+export type BeamMovementKind =
+  | "EMPTY_INWARD"
+  | "ISSUED_FOR_WARPING"
+  | "PRODUCED"
+  | "RECEIVED"
+  | "PRODUCED_LOADED"
+  | "LOADED"
+  | "UNLOADED"
+  | "LOCATION_STATUS";
 
 export const BEAM_MOVEMENT_LABEL: Record<BeamMovementKind, string> = {
+  EMPTY_INWARD: "Empty beam inward",
+  ISSUED_FOR_WARPING: "Beam issue (empty beam)",
   PRODUCED: "Beam production",
+  RECEIVED: "Beam receive",
+  PRODUCED_LOADED: "Beam production loading",
   LOADED: "Beam loading",
   UNLOADED: "Beam unload",
   LOCATION_STATUS: "Location / status update",
@@ -42,38 +65,65 @@ export type BeamMovement = {
   toLoomId: string | null;
   fromRack: string;
   toRack: string;
+  /** Job work party (warper) for issue / receive / inward; "" = in-house. */
+  partyId: string;
+  /** Party challan no. on receive / inward. */
+  challanNo: string;
   remark: string;
   createdAt: string;
 };
 
-export type BeamInput = {
-  date: IsoDate;
-  beamNo: string;
+/** Warp details written when a beam is warped (produced or received). */
+export type WarpDetails = {
   setNo: string;
-  beamType: string;
   warpYarnId: string;
   /** Count / denier as written on the beam card (free text in the old register). */
   countDenier: string;
   totalEnds: number;
   lengthMetre: number;
+};
+
+/** Beam Production / Receive / Production Loading entry. */
+export type BeamInput = WarpDetails & {
+  date: IsoDate;
+  /** Existing empty / at-warping beam no., or a new beam no. */
+  beamNo: string;
+  beamType: string;
   rack: string;
   remark: string;
 };
 
-export type Beam = BeamInput & {
+export type Beam = {
   id: string;
-  /** Demo production number (BPR/…). */
+  /** Number of the document that created the beam record. */
   number: string;
+  beamNo: string;
+  beamType: string;
+  /** Date the beam record was created. */
+  date: IsoDate;
   status: BeamStatus;
   loomId: string | null;
+  rack: string;
+  /** Warp party holding the beam while AT_WARPING ("" = in-house). */
+  partyId: string;
+  /** Current warp set; null while EMPTY / AT_WARPING. */
+  warp: WarpDetails | null;
+  /** Date the current warp set was produced / received. */
+  warpedOn: IsoDate | null;
   /** Payload encoded in the QR label. */
   qrCode: string;
+  remark: string;
   createdAt: string;
 };
 
 export type BeamRow = Beam & {
+  setNo: string;
   warpYarnName: string;
+  countDenier: string;
+  totalEnds: number | null;
+  lengthMetre: number | null;
   loomName: string;
+  partyName: string;
   /** Date of the latest movement. */
   lastMovedOn: IsoDate;
 };
@@ -84,22 +134,97 @@ export type BeamMovementRow = BeamMovement & {
   beamType: string;
   fromLoomName: string;
   toLoomName: string;
+  partyName: string;
 };
 
+export type EmptyBeamInwardInput = {
+  date: IsoDate;
+  beamNo: string;
+  beamType: string;
+  partyId: string;
+  challanNo: string;
+  rack: string;
+  remark: string;
+};
+export type BeamIssueInput = { beamId: string; date: IsoDate; partyId: string; remark: string };
+export type BeamReceiveInput = BeamInput & { partyId: string; challanNo: string };
+export type BeamProductionLoadingInput = BeamInput & { loomId: string };
 export type LoadBeamInput = { beamId: string; loomId: string; date: IsoDate; remark: string };
 export type UnloadBeamInput = {
   beamId: string;
   date: IsoDate;
-  toStatus: Exclude<BeamStatus, "LOADED_ON_LOOM">;
+  toStatus: "IN_STORE" | "SIZING" | "EMPTY";
   rack: string;
   remark: string;
 };
 export type MoveBeamInput = {
   beamId: string;
   date: IsoDate;
-  toStatus: Exclude<BeamStatus, "LOADED_ON_LOOM">;
+  toStatus: "IN_STORE" | "SIZING" | "EMPTY";
   rack: string;
   remark: string;
+};
+
+// ---------------------------------------------------------------------------
+// Yarn for beam production (kg). Stock effect: BACKEND PHASE (not simulated here).
+// ---------------------------------------------------------------------------
+
+export type MaterialIssueInput = {
+  date: IsoDate;
+  beamId: string;
+  yarnId: string;
+  qtyKg: number;
+  remark: string;
+};
+export type MaterialIssue = MaterialIssueInput & { id: string; number: string; createdAt: string };
+export type MaterialIssueRow = MaterialIssue & {
+  beamNo: string;
+  yarnName: string;
+  returnedKg: number;
+  /** Sum of TFO & Beam Yarn Issue Updation changes (+ / −). */
+  adjustmentKg: number;
+  /** Issue + adjustments − returns. */
+  netIssuedKg: number;
+};
+
+export type MaterialReturnInput = {
+  date: IsoDate;
+  materialIssueId: string;
+  qtyKg: number;
+  remark: string;
+};
+export type MaterialReturn = MaterialReturnInput & {
+  id: string;
+  number: string;
+  createdAt: string;
+};
+export type MaterialReturnRow = MaterialReturn & {
+  issueNo: string;
+  beamNo: string;
+  yarnName: string;
+};
+
+export const YARN_UPDATE_SOURCES = ["TFO", "BEAM"] as const;
+export type YarnUpdateSource = (typeof YARN_UPDATE_SOURCES)[number];
+
+/** TFO & Beam Yarn Issue Updation — PROVISIONAL: a signed correction with a reason. */
+export type YarnIssueUpdateInput = {
+  date: IsoDate;
+  materialIssueId: string;
+  source: YarnUpdateSource;
+  /** Positive = more issued, negative = less. */
+  qtyChangeKg: number;
+  reason: string;
+};
+export type YarnIssueUpdate = YarnIssueUpdateInput & {
+  id: string;
+  number: string;
+  createdAt: string;
+};
+export type YarnIssueUpdateRow = YarnIssueUpdate & {
+  issueNo: string;
+  beamNo: string;
+  yarnName: string;
 };
 
 export class WarpingValidationError extends Error {
@@ -124,8 +249,18 @@ export interface WarpingService {
   readonly mode: "demo" | "unavailable";
   listBeams(): Promise<BeamRow[]>;
   listMovements(kind?: BeamMovementKind): Promise<BeamMovementRow[]>;
-  produceBeam(input: BeamInput): Promise<Beam>;
+  inwardEmptyBeam(input: EmptyBeamInwardInput): Promise<BeamMovement>;
+  issueBeam(input: BeamIssueInput): Promise<BeamMovement>;
+  produceBeam(input: BeamInput): Promise<BeamMovement>;
+  receiveBeam(input: BeamReceiveInput): Promise<BeamMovement>;
+  produceAndLoadBeam(input: BeamProductionLoadingInput): Promise<BeamMovement>;
   loadBeam(input: LoadBeamInput): Promise<BeamMovement>;
   unloadBeam(input: UnloadBeamInput): Promise<BeamMovement>;
   moveBeam(input: MoveBeamInput): Promise<BeamMovement>;
+  listMaterialIssues(): Promise<MaterialIssueRow[]>;
+  issueMaterial(input: MaterialIssueInput): Promise<MaterialIssue>;
+  listMaterialReturns(): Promise<MaterialReturnRow[]>;
+  returnMaterial(input: MaterialReturnInput): Promise<MaterialReturn>;
+  listYarnIssueUpdates(): Promise<YarnIssueUpdateRow[]>;
+  updateYarnIssue(input: YarnIssueUpdateInput): Promise<YarnIssueUpdate>;
 }

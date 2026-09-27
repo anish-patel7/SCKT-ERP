@@ -10,6 +10,28 @@ const outward = (
     import("@/features/production/pages/outward-process-pages").then((m) => ({ default: m[name] })),
   );
 
+const movement = (
+  name:
+    | "BeamLoadingPage"
+    | "BeamUnloadingPage"
+    | "BeamIssuePage"
+    | "BeamReceivePage"
+    | "EmptyBeamInwardPage"
+    | "BeamProductionLoadingPage",
+) =>
+  lazy(() =>
+    import("@/features/production/warping/pages/beam-movement-pages").then((m) => ({
+      default: m[name],
+    })),
+  );
+
+const material = (name: "MaterialIssuesPage" | "MaterialReturnsPage" | "YarnIssueUpdatesPage") =>
+  lazy(() =>
+    import("@/features/production/warping/pages/beam-material-pages").then((m) => ({
+      default: m[name],
+    })),
+  );
+
 /**
  * Screen component per registry id (code-split). Registry entries without a page here
  * render the "Workflow specification pending" shell.
@@ -38,14 +60,13 @@ export const PRODUCTION_PAGES: Record<string, FeaturePage> = {
   "warping.beam-production": lazy(
     () => import("@/features/production/warping/pages/beam-production-page"),
   ),
-  "warping.beam-loading": lazy(() =>
-    import("@/features/production/warping/pages/beam-movement-pages").then((m) => ({
-      default: m.BeamLoadingPage,
-    })),
-  ),
-  "warping.beam-unloading": lazy(() =>
-    import("@/features/production/warping/pages/beam-movement-pages").then((m) => ({
-      default: m.BeamUnloadingPage,
-    })),
-  ),
+  "warping.beam-loading": movement("BeamLoadingPage"),
+  "warping.beam-unloading": movement("BeamUnloadingPage"),
+  "warping.beam-issues": movement("BeamIssuePage"),
+  "warping.beam-receipts": movement("BeamReceivePage"),
+  "warping.empty-beam-inward": movement("EmptyBeamInwardPage"),
+  "warping.beam-production-loading": movement("BeamProductionLoadingPage"),
+  "warping.material-issues": material("MaterialIssuesPage"),
+  "warping.material-returns": material("MaterialReturnsPage"),
+  "warping.tfo-yarn-issue": material("YarnIssueUpdatesPage"),
 };

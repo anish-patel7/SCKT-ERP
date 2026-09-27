@@ -36,12 +36,23 @@ export const PRODUCTION_MODULE_LABELS: Record<ProductionModule, string> = {
 
 export const DAILY_PRODUCTION_GROUP = "Daily Production Section";
 
-/** Warping screens built from the old Beam Store functions (slug → description). */
+/**
+ * Warping screens (slug → description). Beam Production / Loading / Unload reuse the old
+ * Beam Store functions; the others are PROVISIONAL screens built around the same beam
+ * lifecycle until their screenshots are supplied.
+ */
 const WARPING_BUILT: Record<string, string> = {
+  "beam-issues": "Issues an empty beam for warping, in-house or to a job work warper.",
+  "material-issues": "Yarn issued (kg) for a beam that is at warping.",
+  "material-returns": "Unused yarn returned against the original material issue.",
+  "beam-receipts": "Warped beam received from a job work warper into store.",
   "beam-production":
-    "Warped beam entry and beam register: set, warp yarn, ends, length, rack, status, QR label.",
-  "beam-loading": "Loads an in-store beam on a loom.",
-  "beam-unloading": "Takes a beam off its loom back to store, sizing or depleted.",
+    "Beam register and in-house beam production: set, warp yarn, ends, length, rack, status, QR label.",
+  "beam-loading": "Loads a warped beam from store on a loom.",
+  "beam-unloading": "Takes a beam off its loom to store, sizing or empty.",
+  "empty-beam-inward": "New or returned empty beams into store.",
+  "beam-production-loading": "Beam produced in-house and loaded straight on a loom.",
+  "tfo-yarn-issue": "Signed correction (+ / −) of yarn issued for a beam, with a reason.",
 };
 
 export const PRODUCTION_FEATURES: readonly ProductionFeatureDefinition[] = [
@@ -176,8 +187,8 @@ export const PRODUCTION_FEATURES: readonly ProductionFeatureDefinition[] = [
   },
   // --- Warping ----------------------------------------------------------------
   // Beam Production / Loading / Unload reuse the old Beam Store functions (beam entry,
-  // loom allocation, status & location, QR / thermal label). The rest are route shells
-  // until their screenshots are supplied.
+  // loom allocation, status & location, QR / thermal label); the rest are provisional
+  // screens on the same beam lifecycle.
   ...(
     [
       ["beam-issues", "Beam Issue Entry (Empty Beam)", "beam_issue"],
