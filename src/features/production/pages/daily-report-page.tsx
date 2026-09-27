@@ -33,9 +33,9 @@ import {
   formatQty,
   formatRate,
   plainNumber,
-} from "@/features/production/utils/formatting";
-import { sumAmount, sumQty } from "@/features/production/utils/quantities";
-import { downloadCsv, printTable, type ExportTable } from "@/features/production/utils/export";
+} from "@/lib/erp/formatting";
+import { sumAmount, sumQty } from "@/lib/erp/numbers";
+import { downloadCsv, printTable, type ExportTable } from "@/lib/erp/export";
 
 type DimensionId = "category" | "party" | "unit" | "product" | "yarn" | "machine" | "company";
 type Option = { id: string; label: string };

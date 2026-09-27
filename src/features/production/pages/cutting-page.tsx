@@ -15,7 +15,7 @@ import {
   FormSection,
   NumberField,
   ReferenceSelect,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import {
   useDocumentForm,
   type DocumentFormConfig,
@@ -26,8 +26,8 @@ import {
   useProductionMasters,
 } from "@/features/production/hooks/use-production";
 import type { CuttingRow } from "@/features/production/types/production";
-import { todayIso } from "@/features/production/utils/formatting";
-import { compareQty, subtractQty } from "@/features/production/utils/quantities";
+import { todayIso } from "@/lib/erp/formatting";
+import { compareQty, subtractQty } from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,

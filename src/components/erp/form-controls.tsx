@@ -22,6 +22,7 @@ export function FormField({
   hint,
   required,
   className,
+  hideLabel,
   children,
 }: {
   label: string;
@@ -30,11 +31,13 @@ export function FormField({
   hint?: ReactNode;
   required?: boolean;
   className?: string;
+  /** Keep the label for screen readers only (grid cells with a column header). */
+  hideLabel?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className={cn("min-w-0 space-y-1", className)}>
-      <Label htmlFor={htmlFor} className="text-xs font-medium">
+      <Label htmlFor={htmlFor} className={cn("text-xs font-medium", hideLabel && "sr-only")}>
         {label}
         {required && (
           <span aria-hidden="true" className="ml-0.5 text-destructive">
@@ -60,19 +63,22 @@ type BaseFieldProps = {
   hint?: ReactNode;
   required?: boolean;
   className?: string;
+  hideLabel?: boolean;
 };
 
 export function DateField({
   value,
   onChange,
+  readOnly,
   ...field
-}: BaseFieldProps & { value: string; onChange: (value: string) => void }) {
+}: BaseFieldProps & { value: string; onChange: (value: string) => void; readOnly?: boolean }) {
   return (
     <FormField htmlFor={field.id} {...field}>
       <Input
         id={field.id}
         type="date"
         value={value}
+        readOnly={readOnly}
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={!!field.error}
         aria-describedby={field.error ? `${field.id}-error` : undefined}
@@ -110,14 +116,21 @@ export function TextField({
   value,
   onChange,
   multiline,
+  readOnly,
   ...field
-}: BaseFieldProps & { value: string; onChange: (value: string) => void; multiline?: boolean }) {
+}: BaseFieldProps & {
+  value: string;
+  onChange: (value: string) => void;
+  multiline?: boolean;
+  readOnly?: boolean;
+}) {
   return (
     <FormField htmlFor={field.id} {...field}>
       {multiline ? (
         <Textarea
           id={field.id}
           value={value}
+          readOnly={readOnly}
           onChange={(e) => onChange(e.target.value)}
           rows={2}
           className="min-h-9 text-sm"
@@ -126,6 +139,7 @@ export function TextField({
         <Input
           id={field.id}
           value={value}
+          readOnly={readOnly}
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={!!field.error}
           aria-describedby={field.error ? `${field.id}-error` : undefined}

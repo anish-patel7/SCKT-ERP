@@ -34,6 +34,7 @@ import { getLocalYarnMaterials, type YarnMaterial } from "@/lib/material-store";
 import { PartyMasterView } from "@/components/party-master-view";
 import { YarnMasterView } from "@/components/yarn-master-view";
 import { WarehouseMasterView } from "@/components/warehouse-master-view";
+import { ItemMasterView } from "@/features/item-master/components/item-master-view";
 
 interface GenericMasterItem {
   id: string;
@@ -337,6 +338,15 @@ function MasterPage() {
         breadcrumb={[{ label: "Masters" }, { label: "Warehouse" }]}
       >
         <WarehouseMasterView />
+      </AppShell>
+    );
+  }
+
+  if (type === "item") {
+    // Item Master V1 (frontend prototype). The existing list stays visible read-only.
+    return (
+      <AppShell title="Item Master" breadcrumb={[{ label: "Masters" }, { label: "Item" }]}>
+        <ItemMasterView legacyRows={dbData as GenericMasterItem[]} />
       </AppShell>
     );
   }

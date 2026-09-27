@@ -7,8 +7,9 @@
  * PREVIEW: FINAL BACKEND MUST RECALCULATE AND VALIDATE IT.
  */
 
-/** Calendar date, ISO `YYYY-MM-DD`. Never a locale-formatted string. */
-export type IsoDate = string;
+import type { DateRange, IsoDate } from "@/lib/erp/formatting";
+
+export type { DateRange, IsoDate };
 
 /** Lifecycle of a document. Separate from the operational (business) status. */
 export type DocumentStatus = "DRAFT" | "POSTED" | "CANCELLED";
@@ -397,8 +398,6 @@ export type ProductionDocumentMap = {
 export type ProductionKind = keyof ProductionDocumentMap;
 export type RowOf<K extends ProductionKind> = ProductionDocumentMap[K]["row"];
 export type InputOf<K extends ProductionKind> = ProductionDocumentMap[K]["input"];
-
-export type DateRange = { from: IsoDate; to: IsoDate };
 
 export type ProductionDraft<K extends ProductionKind = ProductionKind> = {
   id: string;

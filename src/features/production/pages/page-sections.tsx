@@ -5,7 +5,7 @@ import {
   FormSection,
   ReadOnlyField,
   TextField,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 
 /** Standard "Document Info" block: date, number (assigned on post) and optional extras. */
 export function DocumentInfoSection({

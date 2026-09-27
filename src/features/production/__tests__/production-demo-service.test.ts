@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ProductionDemoService } from "@/features/production/demo/production-demo-service";
 import { ProductionValidationError } from "@/features/production/services/production-service";
-import { todayIso } from "@/features/production/utils/formatting";
+import { todayIso } from "@/lib/erp/formatting";
 import type { JobCardRow } from "@/features/production/types/production";
 
 const today = todayIso();

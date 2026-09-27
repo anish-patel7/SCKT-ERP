@@ -11,13 +11,16 @@ import type {
   ProductionKind,
   ProductionMasters,
 } from "@/features/production/types/production";
-import { addDays, todayIso } from "@/features/production/utils/formatting";
+import { addDays, todayIso } from "@/lib/erp/formatting";
+import {
+  DEMO_COMPANIES,
+  DEMO_PARTIES,
+  DEMO_YARNS,
+} from "@/features/masters/demo/shared-master-fixtures";
+import { DEMO_ITEM_LOOKUPS } from "@/features/masters/demo/item-lookups";
 
 export const DEMO_MASTERS: ProductionMasters = {
-  companies: [
-    { id: "co-1", code: "CKT", name: "Chehar Krupa Textiles (Demo)" },
-    { id: "co-2", code: "SCW", name: "SCKT Weaving (Demo)" },
-  ],
+  companies: DEMO_COMPANIES,
   units: [
     { id: "unit-1", code: "U1", name: "Unit-1", companyId: "co-1" },
     { id: "unit-2", code: "U2", name: "Unit-2", companyId: "co-1" },
@@ -29,30 +32,10 @@ export const DEMO_MASTERS: ProductionMasters = {
     { id: "wh-grey", code: "GG", name: "Grey Godown" },
     { id: "wh-fin", code: "FG", name: "Finished Godown" },
   ],
-  parties: [
-    { id: "pt-labdhi", code: "C-101", name: "LABDHI SAREES", kind: "customer" },
-    { id: "pt-krishna", code: "C-102", name: "SHREE KRISHNA FASHION", kind: "customer" },
-    { id: "pt-ridhi", code: "C-103", name: "RIDHI SIDHI TEXTILES", kind: "customer" },
-    { id: "jw-mahavir", code: "J-201", name: "MAHAVIR BUTTA WORKS", kind: "job_work" },
-    { id: "jw-ganesh", code: "J-202", name: "GANESH DYEING MILL", kind: "job_work" },
-    { id: "jw-surat", code: "J-203", name: "SURAT PROCESSORS", kind: "job_work" },
-  ],
-  items: [
-    { id: "it-501", code: "RP-501", name: "Rapier Saree 5.5 Mtr", category: "Saree" },
-    { id: "it-620", code: "RP-620", name: "Rapier Dress Material", category: "Dress Material" },
-    { id: "it-710", code: "RP-710", name: "Jacquard Butta Saree", category: "Saree" },
-  ],
-  yarns: [
-    { id: "yn-vis-red", code: "Y-11", name: "Viscose 120D Red", productType: "Filament Yarn" },
-    {
-      id: "yn-poly-beige",
-      code: "Y-12",
-      name: "Polyester 80D Beige",
-      productType: "Filament Yarn",
-    },
-    { id: "yn-zari", code: "Y-13", name: "Zari Gold 150D", productType: "Zari" },
-    { id: "yn-cotton", code: "Y-14", name: "Cotton 40s Grey", productType: "Spun Yarn" },
-  ],
+  parties: DEMO_PARTIES,
+  // Items come from the Item Master fixtures (one definition).
+  items: DEMO_ITEM_LOOKUPS,
+  yarns: DEMO_YARNS.map(({ denier: _denier, ...yarn }) => yarn),
   machines: [
     { id: "mc-12", code: "LOOM-12", name: "LOOM-12", unitId: "unit-1" },
     { id: "mc-33", code: "LOOM-33", name: "LOOM-33", unitId: "unit-1" },

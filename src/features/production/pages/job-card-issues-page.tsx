@@ -19,7 +19,7 @@ import {
   ReadOnlyField,
   ReferenceSelect,
   TextField,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,7 +40,7 @@ import {
 } from "@/features/production/hooks/use-production";
 import { ProductionValidationError } from "@/features/production/services/production-service";
 import type { JobCardRow } from "@/features/production/types/production";
-import { formatDate, formatQty, todayIso } from "@/features/production/utils/formatting";
+import { formatDate, formatQty, todayIso } from "@/lib/erp/formatting";
 import {
   masterOptions,
   num,

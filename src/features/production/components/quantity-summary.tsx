@@ -1,5 +1,5 @@
-import { formatNumber } from "@/features/production/utils/formatting";
-import type { PrecisionKind } from "@/features/production/utils/quantities";
+import { formatNumber } from "@/lib/erp/formatting";
+import type { PrecisionKind } from "@/lib/erp/numbers";
 import { cn } from "@/lib/utils";
 
 export type QuantitySummaryRow = {

@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { RegisterColumn } from "@/features/production/components/production-register";
 import { TraceabilityPanel } from "@/features/production/components/traceability-panel";
-import { formatDate, formatNumber } from "@/features/production/utils/formatting";
+import { formatDate, formatNumber } from "@/lib/erp/formatting";
 import { Undo2 } from "lucide-react";
 
 function cell<T>(column: RegisterColumn<T>, row: T): ReactNode {

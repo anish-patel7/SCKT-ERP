@@ -15,7 +15,7 @@ import {
   NumberField,
   ReadOnlyField,
   ReferenceSelect,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import {
   useDocumentForm,
   type DocumentFormConfig,
@@ -26,8 +26,8 @@ import {
   useProductionMasters,
 } from "@/features/production/hooks/use-production";
 import type { FabricTransferRow } from "@/features/production/types/production";
-import { formatQty, todayIso } from "@/features/production/utils/formatting";
-import { compareQty, subtractQty, sumQty } from "@/features/production/utils/quantities";
+import { formatQty, todayIso } from "@/lib/erp/formatting";
+import { compareQty, subtractQty, sumQty } from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,
