@@ -17,7 +17,7 @@ import {
   NumberField,
   ReadOnlyField,
   ReferenceSelect,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import {
   useDocumentForm,
   type DocumentFormConfig,
@@ -28,8 +28,8 @@ import {
   useProductionMasters,
 } from "@/features/production/hooks/use-production";
 import type { YarnIssueRow } from "@/features/production/types/production";
-import { formatAmount, formatQty, todayIso } from "@/features/production/utils/formatting";
-import { compareQty, lineAmount, subtractQty } from "@/features/production/utils/quantities";
+import { formatAmount, formatQty, todayIso } from "@/lib/erp/formatting";
+import { compareQty, lineAmount, subtractQty } from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,

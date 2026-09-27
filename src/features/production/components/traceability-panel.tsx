@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronRight, GitBranch, Loader2 } from "lucide-react";
 import { useJobOrderTrace } from "@/features/production/hooks/use-production";
-import { formatDate } from "@/features/production/utils/formatting";
+import { formatDate } from "@/lib/erp/formatting";
 import { cn } from "@/lib/utils";
 
 /** Collapsible Sales Order → … → Stock Conversion chain for one job order (demo data only). */

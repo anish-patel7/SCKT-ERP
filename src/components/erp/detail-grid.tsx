@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 export type DetailColumn<L> = {
@@ -16,9 +17,10 @@ export type DetailColumn<L> = {
 
 /**
  * Editable document lines: a horizontally scrollable table on desktop, one card per
- * line on phones. Cell editors are supplied by the page.
+ * line on phones. Cell editors are supplied by the page. Only one layout is rendered at a
+ * time so every cell editor (and its id / label) exists once.
  */
-export function ProductionDetailGrid<L>({
+export function DetailGrid<L>({
   columns,
   lines,
   lineKey,
@@ -33,6 +35,7 @@ export function ProductionDetailGrid<L>({
   emptyText: string;
   lineLabel?: string;
 }) {
+  const mobile = useIsMobile();
   if (lines.length === 0) {
     return (
       <p className="rounded-md border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
@@ -40,9 +43,9 @@ export function ProductionDetailGrid<L>({
       </p>
     );
   }
-  return (
-    <>
-      <div className="relative hidden overflow-x-auto rounded-md border border-border md:block">
+  if (!mobile) {
+    return (
+      <div className="relative overflow-x-auto rounded-md border border-border">
         <table className="w-full border-separate border-spacing-0 text-xs">
           <thead className="bg-muted">
             <tr>
@@ -106,37 +109,39 @@ export function ProductionDetailGrid<L>({
           </tbody>
         </table>
       </div>
-      <ul className="space-y-2 md:hidden">
-        {lines.map((line, i) => (
-          <li key={lineKey(line, i)} className="rounded-md border border-border p-2 text-xs">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="font-semibold">
-                {lineLabel} {i + 1}
-              </span>
-              {onRemove && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 gap-1 text-xs text-destructive"
-                  onClick={() => onRemove(i)}
-                >
-                  <Trash2 className="size-3.5" /> Remove
-                </Button>
-              )}
-            </div>
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-2">
-              {columns.map((c) => (
-                <div key={c.id} className="min-w-0">
-                  <dt className="text-[0.625rem] uppercase text-muted-foreground">{c.header}</dt>
-                  <dd className={cn(c.align === "right" && "font-mono tabular-nums")}>
-                    {c.render(line, i)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </li>
-        ))}
-      </ul>
-    </>
+    );
+  }
+  return (
+    <ul className="space-y-2">
+      {lines.map((line, i) => (
+        <li key={lineKey(line, i)} className="rounded-md border border-border p-2 text-xs">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="font-semibold">
+              {lineLabel} {i + 1}
+            </span>
+            {onRemove && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 gap-1 text-xs text-destructive"
+                onClick={() => onRemove(i)}
+              >
+                <Trash2 className="size-3.5" /> Remove
+              </Button>
+            )}
+          </div>
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-2">
+            {columns.map((c) => (
+              <div key={c.id} className="min-w-0">
+                <dt className="text-[0.625rem] uppercase text-muted-foreground">{c.header}</dt>
+                <dd className={cn(c.align === "right" && "font-mono tabular-nums")}>
+                  {c.render(line, i)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </li>
+      ))}
+    </ul>
   );
 }

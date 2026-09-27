@@ -53,8 +53,8 @@ import {
   subtractQty,
   sumAmount,
   sumQty,
-} from "@/features/production/utils/quantities";
-import { formatQty, isIsoDate, isWithinRange } from "@/features/production/utils/formatting";
+} from "@/lib/erp/numbers";
+import { formatQty, isIsoDate, isWithinRange } from "@/lib/erp/formatting";
 import {
   DEMO_COUNTERS,
   DEMO_FABRIC_STOCK,

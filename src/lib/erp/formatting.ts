@@ -1,5 +1,8 @@
-import type { DateRange, IsoDate } from "@/features/production/types/production";
-import { PRECISION, roundTo, type PrecisionKind } from "@/features/production/utils/quantities";
+/** Calendar date, ISO `YYYY-MM-DD`. Never a locale-formatted string. */
+export type IsoDate = string;
+export type DateRange = { from: IsoDate; to: IsoDate };
+
+import { PRECISION, roundTo, type PrecisionKind } from "@/lib/erp/numbers";
 
 const formatters = new Map<PrecisionKind, Intl.NumberFormat>();
 
@@ -25,6 +28,8 @@ export const formatQty = (v: number | null | undefined) => formatNumber(v, "qty"
 export const formatMetres = (v: number | null | undefined) => formatNumber(v, "metres");
 export const formatRate = (v: number | null | undefined) => formatNumber(v, "rate");
 export const formatAmount = (v: number | null | undefined) => formatNumber(v, "amount");
+export const formatPercent = (v: number | null | undefined) => formatNumber(v, "percent");
+export const formatWeight = (v: number | null | undefined) => formatNumber(v, "weight");
 
 /** Plain (no grouping) numeric text for CSV export. */
 export function plainNumber(value: number, kind: PrecisionKind): string {

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProductionMode } from "@/features/production/hooks/use-production";
-import type { ReferenceOption } from "@/features/production/components/form-controls";
-import { defaultRange } from "@/features/production/utils/formatting";
+import type { ReferenceOption } from "@/components/erp/form-controls";
+import { defaultRange } from "@/lib/erp/formatting";
 import type { DateRange, MasterOption, Party } from "@/features/production/types/production";
-import { formatNumber } from "@/features/production/utils/formatting";
-import { parseDecimal, type PrecisionKind } from "@/features/production/utils/quantities";
+import { formatNumber } from "@/lib/erp/formatting";
+import { parseDecimal, type PrecisionKind } from "@/lib/erp/numbers";
 
 /** Existing catalog permission for creating production documents (no new codes). */
 export const PRODUCTION_CREATE_PERMISSION = "production:create";

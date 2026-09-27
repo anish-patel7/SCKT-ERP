@@ -15,7 +15,7 @@ import {
   ReadOnlyField,
   ReferenceSelect,
   TextField,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import {
   useDocumentForm,
   type DocumentFormConfig,
@@ -25,8 +25,8 @@ import {
   useProductionMasters,
 } from "@/features/production/hooks/use-production";
 import type { JobOrderRow } from "@/features/production/types/production";
-import { formatAmount, todayIso } from "@/features/production/utils/formatting";
-import { lineAmount } from "@/features/production/utils/quantities";
+import { formatAmount, todayIso } from "@/lib/erp/formatting";
+import { lineAmount } from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,

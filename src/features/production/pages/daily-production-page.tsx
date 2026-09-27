@@ -10,15 +10,15 @@ import { ProductionFormDialog } from "@/features/production/components/productio
 import { DraftsPanel } from "@/features/production/components/drafts-panel";
 import { RecordViewDialog } from "@/features/production/components/record-view-dialog";
 import {
-  ProductionDetailGrid,
+  DetailGrid,
   type DetailColumn,
-} from "@/features/production/components/production-detail-grid";
+} from "@/components/erp/detail-grid";
 import {
   FieldGrid,
   FormSection,
   ReadOnlyField,
   ReferenceSelect,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,14 +50,14 @@ import {
   formatQty,
   formatRate,
   todayIso,
-} from "@/features/production/utils/formatting";
+} from "@/lib/erp/formatting";
 import {
   compareQty,
   lineAmount,
   subtractQty,
   sumAmount,
   sumQty,
-} from "@/features/production/utils/quantities";
+} from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,
@@ -361,7 +361,7 @@ export default function DailyProductionPage({ feature }: { feature: ProductionFe
               {e["lines"]}
             </p>
           )}
-          <ProductionDetailGrid
+          <DetailGrid
             columns={lineColumns}
             lines={v.lines}
             lineKey={(l) => l.key}

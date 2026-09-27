@@ -12,6 +12,10 @@ export const PRECISION = {
   metres: 3,
   rate: 2,
   amount: 2,
+  percent: 2,
+  weight: 3,
+  /** Unit conversion factors and multipliers. */
+  conversion: 4,
 } as const;
 
 export type PrecisionKind = keyof typeof PRECISION;

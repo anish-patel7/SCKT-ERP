@@ -16,15 +16,15 @@ import {
   NumberField,
   ReadOnlyField,
   ReferenceSelect,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import {
   useDocumentForm,
   type DocumentFormConfig,
 } from "@/features/production/hooks/use-document-form";
 import { useProductionList } from "@/features/production/hooks/use-production";
 import type { YarnReturnRow } from "@/features/production/types/production";
-import { formatDate, formatQty, todayIso } from "@/features/production/utils/formatting";
-import { compareQty, subtractQty } from "@/features/production/utils/quantities";
+import { formatDate, formatQty, todayIso } from "@/lib/erp/formatting";
+import { compareQty, subtractQty } from "@/lib/erp/numbers";
 import {
   num,
   text,

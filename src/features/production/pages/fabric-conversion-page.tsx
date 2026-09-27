@@ -10,9 +10,9 @@ import { ProductionFormDialog } from "@/features/production/components/productio
 import { DraftsPanel } from "@/features/production/components/drafts-panel";
 import { RecordViewDialog } from "@/features/production/components/record-view-dialog";
 import {
-  ProductionDetailGrid,
+  DetailGrid,
   type DetailColumn,
-} from "@/features/production/components/production-detail-grid";
+} from "@/components/erp/detail-grid";
 import { QuantitySummary } from "@/features/production/components/quantity-summary";
 import {
   FieldGrid,
@@ -20,7 +20,7 @@ import {
   ReadOnlyField,
   ReferenceSelect,
   TextField,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -41,8 +41,8 @@ import {
   useProductionMasters,
 } from "@/features/production/hooks/use-production";
 import type { FabricConversionRow, MasterOption } from "@/features/production/types/production";
-import { formatQty, todayIso } from "@/features/production/utils/formatting";
-import { compareQty, subtractQty, sumQty } from "@/features/production/utils/quantities";
+import { formatQty, todayIso } from "@/lib/erp/formatting";
+import { compareQty, subtractQty, sumQty } from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,
@@ -534,7 +534,7 @@ export default function FabricConversionPage({
                 {e["stockOut"]}
               </p>
             )}
-            <ProductionDetailGrid
+            <DetailGrid
               columns={outColumns}
               lines={v.stockOut}
               lineKey={(l) => l.key}
@@ -567,7 +567,7 @@ export default function FabricConversionPage({
                 {e["stockIn"]}
               </p>
             )}
-            <ProductionDetailGrid
+            <DetailGrid
               columns={inColumns}
               lines={v.stockIn}
               lineKey={(l) => l.key}

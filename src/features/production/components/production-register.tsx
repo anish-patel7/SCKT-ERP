@@ -24,9 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { DateRange } from "@/features/production/types/production";
-import { formatDate, formatNumber, plainNumber } from "@/features/production/utils/formatting";
-import { sumAmount, sumQty, type PrecisionKind } from "@/features/production/utils/quantities";
-import { downloadCsv, printTable, type ExportTable } from "@/features/production/utils/export";
+import { formatDate, formatNumber, plainNumber } from "@/lib/erp/formatting";
+import { sumAmount, sumQty, type PrecisionKind } from "@/lib/erp/numbers";
+import { downloadCsv, printTable, type ExportTable } from "@/lib/erp/export";
 import { cn } from "@/lib/utils";
 
 export type ColumnKind = "text" | "date" | PrecisionKind;

@@ -23,7 +23,7 @@ import {
   NumberField,
   ReadOnlyField,
   ReferenceSelect,
-} from "@/features/production/components/form-controls";
+} from "@/components/erp/form-controls";
 import {
   useDocumentForm,
   type DocumentFormConfig,
@@ -43,13 +43,13 @@ import {
   formatMetres,
   formatQty,
   todayIso,
-} from "@/features/production/utils/formatting";
+} from "@/lib/erp/formatting";
 import {
   compareQty,
   lineAmount,
   subtractQty,
   sumQty,
-} from "@/features/production/utils/quantities";
+} from "@/lib/erp/numbers";
 import {
   masterOptions,
   num,
