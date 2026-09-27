@@ -15,6 +15,8 @@
 --   - Inventory ledger balance trigger & item creation permissions
 --   - Parties party_type categorization
 --   - RBAC system roles (admin, manager, operator, viewer) & permission catalog
+--   - 007A Permission Matrix V2: granular user_management / role_management
+--     permissions; RBAC policies on granular codes; no client profile DELETE
 --   - Auth signup profile creation trigger
 -- ============================================================================
 
@@ -2316,22 +2318,66 @@ CREATE OR REPLACE FUNCTION public.guard_profile_privileged_columns() RETURNS tri
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path = public, pg_temp
     AS $$
+DECLARE
+  actor uuid := auth.uid();
+  can_update boolean;
+  can_approve boolean;
+  can_assign boolean;
+  approval_changed boolean;
+  role_changed boolean;
+  status_changed boolean;
+  admin_flags_changed boolean;
+  details_changed boolean;
+  new_row jsonb := to_jsonb(NEW);
+  old_row jsonb := to_jsonb(OLD);
+  privileged text[] := ARRAY[
+    'primary_role_id', 'additional_role_ids', 'status', 'approval_status',
+    'approved_by', 'approved_at', 'is_locked', 'creation_method', 'updated_at'
+  ];
 BEGIN
   -- auth.uid() is NULL for service-role / SQL editor / internal triggers.
-  IF auth.uid() IS NULL OR public.user_has_permission(auth.uid(), 'user_management:write') THEN
+  IF actor IS NULL THEN
     RETURN NEW;
   END IF;
 
-  IF NEW.primary_role_id IS DISTINCT FROM OLD.primary_role_id
-     OR NEW.status IS DISTINCT FROM OLD.status
-     OR (to_jsonb(NEW) -> 'approval_status') IS DISTINCT FROM (to_jsonb(OLD) -> 'approval_status')
-     OR (to_jsonb(NEW) -> 'approved_by') IS DISTINCT FROM (to_jsonb(OLD) -> 'approved_by')
-     OR (to_jsonb(NEW) -> 'approved_at') IS DISTINCT FROM (to_jsonb(OLD) -> 'approved_at')
-     OR (to_jsonb(NEW) -> 'is_locked') IS DISTINCT FROM (to_jsonb(OLD) -> 'is_locked')
-     OR (to_jsonb(NEW) -> 'additional_role_ids') IS DISTINCT FROM (to_jsonb(OLD) -> 'additional_role_ids')
-     OR (to_jsonb(NEW) -> 'creation_method') IS DISTINCT FROM (to_jsonb(OLD) -> 'creation_method')
-  THEN
-    RAISE EXCEPTION 'Not allowed to change role, status or approval fields of a profile'
+  can_update := public.user_has_permission(actor, 'user_management:update');
+  can_approve := public.user_has_permission(actor, 'user_management:approve');
+  can_assign := public.user_has_permission(actor, 'user_management:assign_role');
+
+  approval_changed := (new_row -> 'approval_status') IS DISTINCT FROM (old_row -> 'approval_status')
+    OR (new_row -> 'approved_by') IS DISTINCT FROM (old_row -> 'approved_by')
+    OR (new_row -> 'approved_at') IS DISTINCT FROM (old_row -> 'approved_at');
+  role_changed := NEW.primary_role_id IS DISTINCT FROM OLD.primary_role_id
+    OR (new_row -> 'additional_role_ids') IS DISTINCT FROM (old_row -> 'additional_role_ids');
+  status_changed := NEW.status IS DISTINCT FROM OLD.status;
+  admin_flags_changed := (new_row -> 'is_locked') IS DISTINCT FROM (old_row -> 'is_locked')
+    OR (new_row -> 'creation_method') IS DISTINCT FROM (old_row -> 'creation_method');
+  details_changed := (new_row - privileged) IS DISTINCT FROM (old_row - privileged);
+
+  IF approval_changed AND NOT can_approve THEN
+    RAISE EXCEPTION 'Not allowed to approve or reject users (requires user_management:approve)'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF role_changed AND NOT can_assign THEN
+    RAISE EXCEPTION 'Not allowed to change user roles (requires user_management:assign_role)'
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- Status may change as part of an approval decision, otherwise it is an edit.
+  IF status_changed AND NOT (can_update OR (approval_changed AND can_approve)) THEN
+    RAISE EXCEPTION 'Not allowed to change user status (requires user_management:update)'
+      USING ERRCODE = '42501';
+  END IF;
+
+  IF admin_flags_changed AND NOT can_update THEN
+    RAISE EXCEPTION 'Not allowed to change user account flags (requires user_management:update)'
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- Users may edit their own details; other users' details need update.
+  IF details_changed AND NEW.id IS DISTINCT FROM actor AND NOT can_update THEN
+    RAISE EXCEPTION 'Not allowed to edit other users (requires user_management:update)'
       USING ERRCODE = '42501';
   END IF;
 
@@ -10762,13 +10808,6 @@ ALTER TABLE public.profile_audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: profiles profiles_delete_managed; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY profiles_delete_managed ON public.profiles FOR DELETE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
-
-
---
 -- Name: profiles profiles_select; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -10779,7 +10818,7 @@ CREATE POLICY profiles_select ON public.profiles FOR SELECT TO authenticated USI
 -- Name: profiles profiles_update_managed; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY profiles_update_managed ON public.profiles FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying)) WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY profiles_update_managed ON public.profiles FOR UPDATE TO authenticated USING ((public.user_has_permission(auth.uid(), 'user_management:update'::character varying) OR public.user_has_permission(auth.uid(), 'user_management:approve'::character varying)) OR public.user_has_permission(auth.uid(), 'user_management:assign_role'::character varying)) WITH CHECK ((public.user_has_permission(auth.uid(), 'user_management:update'::character varying) OR public.user_has_permission(auth.uid(), 'user_management:approve'::character varying)) OR public.user_has_permission(auth.uid(), 'user_management:assign_role'::character varying));
 
 
 --
@@ -10820,7 +10859,7 @@ ALTER TABLE public.role_definitions ENABLE ROW LEVEL SECURITY;
 -- Name: role_definitions role_defs_manage; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY role_defs_manage ON public.role_definitions FOR INSERT TO authenticated WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY role_defs_manage ON public.role_definitions FOR INSERT TO authenticated WITH CHECK (public.user_has_permission(auth.uid(), 'role_management:create'::character varying));
 
 
 --
@@ -10834,7 +10873,7 @@ CREATE POLICY role_defs_select_all ON public.role_definitions FOR SELECT TO auth
 -- Name: role_definitions role_defs_update; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY role_defs_update ON public.role_definitions FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying)) WITH CHECK ((public.user_has_permission(auth.uid(), 'user_management:write'::character varying) AND (NOT (((role_code)::text = 'admin'::text) AND (is_active IS FALSE)))));
+CREATE POLICY role_defs_update ON public.role_definitions FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'role_management:update'::character varying)) WITH CHECK ((public.user_has_permission(auth.uid(), 'role_management:update'::character varying) AND (NOT (((role_code)::text = 'admin'::text) AND (is_active IS FALSE)))));
 
 
 --
@@ -10847,14 +10886,14 @@ ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
 -- Name: role_permissions role_perms_delete; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY role_perms_delete ON public.role_permissions FOR DELETE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY role_perms_delete ON public.role_permissions FOR DELETE TO authenticated USING (public.user_has_permission(auth.uid(), 'role_management:assign_permissions'::character varying));
 
 
 --
 -- Name: role_permissions role_perms_insert; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY role_perms_insert ON public.role_permissions FOR INSERT TO authenticated WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY role_perms_insert ON public.role_permissions FOR INSERT TO authenticated WITH CHECK (public.user_has_permission(auth.uid(), 'role_management:assign_permissions'::character varying));
 
 
 --
@@ -10868,7 +10907,7 @@ CREATE POLICY role_perms_select_all ON public.role_permissions FOR SELECT TO aut
 -- Name: role_permissions role_perms_update; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY role_perms_update ON public.role_permissions FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying)) WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY role_perms_update ON public.role_permissions FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'role_management:assign_permissions'::character varying)) WITH CHECK (public.user_has_permission(auth.uid(), 'role_management:assign_permissions'::character varying));
 
 
 --
@@ -11209,14 +11248,14 @@ ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
 -- Name: user_roles_mapping user_roles_delete; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY user_roles_delete ON public.user_roles_mapping FOR DELETE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY user_roles_delete ON public.user_roles_mapping FOR DELETE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:assign_role'::character varying));
 
 
 --
 -- Name: user_roles_mapping user_roles_insert; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY user_roles_insert ON public.user_roles_mapping FOR INSERT TO authenticated WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY user_roles_insert ON public.user_roles_mapping FOR INSERT TO authenticated WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:assign_role'::character varying));
 
 
 --
@@ -11236,7 +11275,7 @@ CREATE POLICY user_roles_select_all ON public.user_roles_mapping FOR SELECT TO a
 -- Name: user_roles_mapping user_roles_update; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY user_roles_update ON public.user_roles_mapping FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:write'::character varying)) WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:write'::character varying));
+CREATE POLICY user_roles_update ON public.user_roles_mapping FOR UPDATE TO authenticated USING (public.user_has_permission(auth.uid(), 'user_management:assign_role'::character varying)) WITH CHECK (public.user_has_permission(auth.uid(), 'user_management:assign_role'::character varying));
 
 
 --
@@ -12044,7 +12083,7 @@ GRANT ALL ON TABLE public.profile_audit_log TO service_role;
 -- Name: TABLE profiles; Type: ACL; Schema: public; Owner: -
 --
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.profiles TO authenticated;
 GRANT ALL ON TABLE public.profiles TO service_role;
 
 
@@ -12330,7 +12369,7 @@ INSERT INTO public.permissions (id, permission_code, permission_name, descriptio
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('2c637995-3759-441e-834d-b8646857eb57', 'sales:create', 'Create Sales Orders', NULL, 'sales', 'create', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('99b213ec-6782-4fc0-bbd5-a2055a981c40', 'sales:update', 'Update Sales Orders', NULL, 'sales', 'update', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('d96c477e-714e-4aa6-97fa-6a8d807c33e9', 'user_management:read', 'Read User Management', NULL, 'user_management', 'read', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
-INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('92680b40-e88f-4d6a-bd4e-f48851645e27', 'user_management:write', 'Write User Management', NULL, 'user_management', 'write', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('92680b40-e88f-4d6a-bd4e-f48851645e27', 'user_management:write', 'Write User Management', 'Legacy aggregate. Superseded by the granular user_management / role_management permissions; still gates Backup, WhatsApp and Data Migration screens.', 'user_management', 'write', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('ff81a71e-5989-4782-b15f-1ac316c89a03', 'reports:read', 'Read Reports', NULL, 'reports', 'read', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('562cff51-32f0-461b-8e1b-a03109ce062a', 'audit:read', 'Read Audit Logs', NULL, 'audit', 'read', true, true, '2026-09-24 06:35:56.268972+00', '2026-09-24 06:35:56.268972+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('7682e352-fb82-4751-8319-e35728accd1d', 'masters.yarn:read', 'Read Yarn Masters', NULL, 'masters.yarn', 'read', true, true, '2026-09-24 06:35:56.324793+00', '2026-09-24 06:35:56.324793+00');
@@ -12349,6 +12388,14 @@ INSERT INTO public.permissions (id, permission_code, permission_name, descriptio
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('43f715ff-0653-4187-b1f7-2ed0e598abf2', 'design:create', 'Create Designs', NULL, 'design', 'create', true, true, '2026-09-24 06:35:56.324793+00', '2026-09-24 06:35:56.324793+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('32ffa7d7-d2a3-42ef-b744-cd2f9cd00568', 'design:update', 'Update Designs', NULL, 'design', 'update', true, true, '2026-09-24 06:35:56.324793+00', '2026-09-24 06:35:56.324793+00');
 INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('ec35ecbe-47bd-4870-8760-c429ad8d5212', 'design:delete', 'Delete Designs', NULL, 'design', 'delete', true, true, '2026-09-24 06:35:56.324793+00', '2026-09-24 06:35:56.324793+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a01', 'user_management:create', 'Create Users', 'Create user accounts (server-side Admin path).', 'user_management', 'create', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a02', 'user_management:update', 'Edit Users', 'Edit user profile details and activate / deactivate users. Users are never hard-deleted.', 'user_management', 'update', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a03', 'user_management:approve', 'Approve Users', 'Approve or reject pending registration requests.', 'user_management', 'approve', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a04', 'user_management:assign_role', 'Assign Roles to Users', 'Assign or remove Roles / Access Groups on users and set the primary role.', 'user_management', 'assign_role', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a05', 'role_management:read', 'View Roles', 'View Roles / Access Groups and the Permission Matrix.', 'role_management', 'read', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a06', 'role_management:create', 'Create Roles', 'Create custom Roles / Access Groups.', 'role_management', 'create', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a07', 'role_management:update', 'Edit Roles', 'Edit, activate and deactivate Roles / Access Groups.', 'role_management', 'update', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
+INSERT INTO public.permissions (id, permission_code, permission_name, description, module, action, is_system, is_active, created_at, updated_at) VALUES ('4d0c7a1e-7a3b-4e0f-9c11-000000007a08', 'role_management:assign_permissions', 'Assign Permissions to Roles', 'Change the permissions granted to a Role / Access Group.', 'role_management', 'assign_permissions', true, true, '2026-09-27 00:00:00+00', '2026-09-27 00:00:00+00');
 
 
 --
@@ -12474,6 +12521,15 @@ INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VAL
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('8eac213d-7357-406d-8a02-53d9315732a1', '04132c14-a49f-479d-a4b2-e21fe5530d17', 'e3ee3935-54a9-4a01-b083-f4204a467dd3', '2026-09-24 06:35:56.330606+00');
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('3cabfd8c-46ea-4114-9373-c8853949b0c9', '04132c14-a49f-479d-a4b2-e21fe5530d17', '07ccf0ba-f81e-4205-bd7d-d5d8609b9ac1', '2026-09-24 06:35:56.330606+00');
 INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('4eed5213-d555-455a-b04b-279065e7eee3', '04132c14-a49f-479d-a4b2-e21fe5530d17', '3d8c8adf-6513-4f58-9b32-89eda5d629e5', '2026-09-24 06:35:56.330606+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a101', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a01', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a102', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a02', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a103', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a03', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a104', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a04', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a105', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a05', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a106', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a06', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a107', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a07', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a108', 'c8afeb18-abf6-41c1-9d9f-cf02e18415ea', '4d0c7a1e-7a3b-4e0f-9c11-000000007a08', '2026-09-27 00:00:00+00');
+INSERT INTO public.role_permissions (id, role_id, permission_id, created_at) VALUES ('5e1d2c3b-7a3b-4e0f-9c11-00000007a201', '04132c14-a49f-479d-a4b2-e21fe5530d17', '4d0c7a1e-7a3b-4e0f-9c11-000000007a05', '2026-09-27 00:00:00+00');
 
 
 --

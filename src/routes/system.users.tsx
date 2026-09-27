@@ -22,6 +22,9 @@ import {
 import type { UserProfile } from "@/services/users";
 import { ManageRolesDialog } from "@/components/users/manage-roles-dialog";
 import {
+  APPROVE_USERS_PERMISSION,
+  CREATE_USERS_PERMISSION,
+  EDIT_USERS_PERMISSION,
   MANAGE_ROLES_PERMISSION,
   STATUS_BADGES,
 } from "@/components/users/constants";
@@ -52,6 +55,7 @@ import {
   Info,
   KeyRound,
   AlertTriangle,
+  UserPlus,
 } from "lucide-react";
 
 export const Route = createFileRoute("/system/users")({
@@ -118,7 +122,11 @@ function UsersPage() {
   ).length;
   const accessUser = users.find((u) => u.id === accessUserId) ?? null;
 
-  const canManageRoles = usePermissions().can(MANAGE_ROLES_PERMISSION);
+  const { can } = usePermissions();
+  const canManageRoles = can(MANAGE_ROLES_PERMISSION);
+  const canEditUsers = can(EDIT_USERS_PERMISSION);
+  const canApproveUsers = can(APPROVE_USERS_PERMISSION);
+  const canCreateUsers = can(CREATE_USERS_PERMISSION);
   const assignFallbacks = useAssignFallbackRolesExplicitly();
 
   // Users whose access comes only from profiles.primary_role_id (no user_roles_mapping rows).
@@ -181,6 +189,17 @@ function UsersPage() {
             . New accounts cannot be created from the browser (requires a secure
             server-side Supabase Admin path).
           </p>
+          {canCreateUsers && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="ml-auto h-8 shrink-0 gap-1 text-xs"
+              disabled
+              title="Coming soon: requires the secure server-side Admin user creation path"
+            >
+              <UserPlus className="size-3.5" /> Add User
+            </Button>
+          )}
         </div>
 
         {canManageRoles && fallbackAssignments.length > 0 && (
@@ -415,7 +434,7 @@ function UsersPage() {
           <KeyRound className="size-3.5" />
           {canManageRoles ? "Manage Roles" : "View Access"}
         </Button>
-        {canManageRoles && isPending && (
+        {canApproveUsers && isPending && (
           <>
             <Button
               variant="ghost"
@@ -443,7 +462,7 @@ function UsersPage() {
             </Button>
           </>
         )}
-        {canManageRoles && !isPending && (
+        {canEditUsers && !isPending && (
           <Button
             variant="ghost"
             size="sm"
